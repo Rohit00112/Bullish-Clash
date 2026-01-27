@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+    /* Light mode (default) - IIC Brand Colors */
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 232 3% 41%;
+
+        --card: 0 0% 100%;
+        --card-foreground: 232 3% 41%;
+
+        --popover: 0 0% 100%;
+        --popover-foreground: 232 3% 41%;
+
+        --primary: 224 65% 37%;
+        --primary-foreground: 0 0% 100%;
+
+        --secondary: 220 14% 96%;
+        --secondary-foreground: 232 3% 41%;
+
+        --muted: 220 14% 96%;
+        --muted-foreground: 216 2% 51%;
+
+        --accent: 8 76% 51%;
+        --accent-foreground: 0 0% 100%;
+
+        --destructive: 8 76% 51%;
+        --destructive-foreground: 0 0% 100%;
+
+        --border: 220 13% 91%;
+        --input: 220 13% 91%;
+        --ring: 224 65% 37%;
+
+        --radius: 0.5rem;
+    }
+
+    /* Dark mode - IIC Brand Colors */
+    .dark {
+        --background: 224 40% 8%;
+        --foreground: 220 14% 96%;
+
+        --card: 224 35% 12%;
+        --card-foreground: 220 14% 96%;
+
+        --popover: 224 35% 12%;
+        --popover-foreground: 220 14% 96%;
+
+        --primary: 224 65% 50%;
+        --primary-foreground: 0 0% 100%;
+
+        --secondary: 224 30% 18%;
+        --secondary-foreground: 220 14% 96%;
+
+        --muted: 224 30% 18%;
+        --muted-foreground: 216 10% 65%;
+
+        --accent: 8 76% 55%;
+        --accent-foreground: 0 0% 100%;
+
+        --destructive: 8 70% 45%;
+        --destructive-foreground: 0 0% 100%;
+
+        --border: 224 30% 20%;
+        --input: 224 30% 20%;
+        --ring: 224 65% 50%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
+}
+
+@layer components {
+    .price-up {
+        @apply text-green-500;
+    }
+
+    .price-down {
+        @apply text-red-500;
+    }
+
+    .price-neutral {
+        @apply text-gray-400;
+    }
+
+    .card {
+        @apply bg-card rounded-lg border border-border p-4;
+    }
+
+    .btn-primary {
+        @apply bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md font-medium transition-colors;
+    }
+
+    .btn-secondary {
+        @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 rounded-md font-medium transition-colors;
+    }
+
+    .btn-success {
+        @apply bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md font-medium transition-colors;
+    }
+
+    .btn-danger {
+        @apply bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md font-medium transition-colors;
+    }
+
+    .input {
+        @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .table-row-hover {
+        @apply hover:bg-secondary/50 transition-colors cursor-pointer;
+    }
+
+    /* Scrollbar styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        @apply bg-secondary/30 rounded;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        @apply bg-secondary rounded;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        @apply bg-muted-foreground/50;
+    }
+}
+
+/* Number animations */
+.number-ticker {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Toast notifications */
+.toast-success {
+    @apply bg-green-600 text-white;
+}
+
+.toast-error {
+    @apply bg-red-600 text-white;
+}
+
+/* Leaderboard highlight */
+.rank-1 {
+    @apply bg-yellow-500/10 border-yellow-500/50;
+}
+
+.rank-2 {
+    @apply bg-gray-400/10 border-gray-400/50;
+}
+
+.rank-3 {
+    @apply bg-orange-600/10 border-orange-600/50;
+}
+
+.my-rank {
+    @apply bg-primary/10 border-primary/50;
+}

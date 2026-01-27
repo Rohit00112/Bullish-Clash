@@ -1,0 +1,22 @@
+# Development Dockerfile for API
+FROM node:20-alpine
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/shared/package.json ./packages/shared/
+
+# Install all dependencies
+RUN pnpm install
+
+# Copy source files
+COPY packages/shared ./packages/shared
+COPY apps/api ./apps/api
+
+EXPOSE 4000
+
+CMD ["pnpm", "--filter", "@bullish-clash/api", "dev"]

@@ -1,0 +1,22 @@
+# Development Dockerfile for Web
+FROM node:20-alpine
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/shared/package.json ./packages/shared/
+
+# Install all dependencies
+RUN pnpm install
+
+# Copy source files
+COPY packages/shared ./packages/shared
+COPY apps/web ./apps/web
+
+EXPOSE 3000
+
+CMD ["pnpm", "--filter", "@bullish-clash/web", "dev"]
