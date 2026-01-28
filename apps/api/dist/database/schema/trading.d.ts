@@ -142,7 +142,7 @@ export declare const orders: import("drizzle-orm/pg-core").PgTableWithColumns<{
             tableName: "orders";
             dataType: "string";
             columnType: "PgEnumColumn";
-            data: "open" | "pending" | "filled" | "partial" | "cancelled" | "rejected" | "expired";
+            data: "pending" | "rejected" | "open" | "filled" | "partial" | "cancelled" | "expired";
             driverParam: string;
             notNull: true;
             hasDefault: true;

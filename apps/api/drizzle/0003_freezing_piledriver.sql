@@ -1,0 +1,1 @@
+ALTER TABLE "competitions" ALTER COLUMN "current_phase" SET DEFAULT 'bidding';

@@ -210,6 +210,7 @@ export class AuthService {
             phone: dto.phone,
             role: 'participant',
             isActive: true,
+            mustChangePassword: true,
         }).returning();
 
         // Get default competition
@@ -296,6 +297,20 @@ export class AuthService {
             user: this.sanitizeUser(user),
             ...tokens,
         };
+    }
+
+    async changePassword(userId: string, dto: { password: string }) {
+        const passwordHash = await bcrypt.hash(dto.password, 10);
+
+        await this.db.update(schema.users)
+            .set({
+                passwordHash,
+                mustChangePassword: false,
+                updatedAt: new Date(),
+            })
+            .where(eq(schema.users.id, userId));
+
+        return { success: true, message: 'Password changed successfully' };
     }
 
     async refreshToken(dto: RefreshTokenDto): Promise<AuthResponseDto> {

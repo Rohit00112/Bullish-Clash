@@ -5,7 +5,9 @@ const pg_core_1 = require("drizzle-orm/pg-core");
 exports.competitionStatusEnum = (0, pg_core_1.pgEnum)('competition_status', [
     'draft',
     'scheduled',
+    'bidding',
     'active',
+    'remarks',
     'paused',
     'ended',
 ]);
@@ -25,6 +27,7 @@ exports.competitions = (0, pg_core_1.pgTable)('competitions', {
     tradingHoursStart: (0, pg_core_1.varchar)('trading_hours_start', { length: 10 }).default('11:00'),
     tradingHoursEnd: (0, pg_core_1.varchar)('trading_hours_end', { length: 10 }).default('15:00'),
     isDefault: (0, pg_core_1.boolean)('is_default').notNull().default(false),
+    isLeaderboardHidden: (0, pg_core_1.boolean)('is_leaderboard_hidden').notNull().default(false),
     createdAt: (0, pg_core_1.timestamp)('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

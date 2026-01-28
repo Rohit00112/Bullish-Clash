@@ -11,6 +11,7 @@ interface User {
     avatarUrl?: string;
     phone?: string;
     isActive: boolean;
+    mustChangePassword?: boolean;
     createdAt: string;
 }
 

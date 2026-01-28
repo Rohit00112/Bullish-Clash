@@ -39,6 +39,9 @@ export declare class CompetitionController {
         remainingTimeMs: number;
         remainingTimeFormatted: string;
     }>;
+    exportCompetitionReport(id: string): Promise<{
+        csv: string;
+    }>;
     createCompetition(dto: CreateCompetitionDto): Promise<any>;
     updateCompetition(id: string, dto: UpdateCompetitionDto): Promise<any>;
     updateStatus(id: string, status: 'draft' | 'scheduled' | 'active' | 'paused' | 'ended'): Promise<any>;

@@ -1,4 +1,4 @@
-export declare const competitionStatusEnum: import("drizzle-orm/pg-core").PgEnum<["draft", "scheduled", "active", "paused", "ended"]>;
+export declare const competitionStatusEnum: import("drizzle-orm/pg-core").PgEnum<["draft", "scheduled", "bidding", "active", "remarks", "paused", "ended"]>;
 export declare const competitions: import("drizzle-orm/pg-core").PgTableWithColumns<{
     name: "competitions";
     schema: undefined;
@@ -44,11 +44,11 @@ export declare const competitions: import("drizzle-orm/pg-core").PgTableWithColu
             tableName: "competitions";
             dataType: "string";
             columnType: "PgEnumColumn";
-            data: "draft" | "scheduled" | "active" | "paused" | "ended";
+            data: "draft" | "scheduled" | "bidding" | "active" | "remarks" | "paused" | "ended";
             driverParam: string;
             notNull: true;
             hasDefault: true;
-            enumValues: ["draft", "scheduled", "active", "paused", "ended"];
+            enumValues: ["draft", "scheduled", "bidding", "active", "remarks", "paused", "ended"];
             baseColumn: never;
         }, {}, {}>;
         startingCash: import("drizzle-orm/pg-core").PgColumn<{
@@ -173,6 +173,18 @@ export declare const competitions: import("drizzle-orm/pg-core").PgTableWithColu
         }, {}, {}>;
         isDefault: import("drizzle-orm/pg-core").PgColumn<{
             name: "is_default";
+            tableName: "competitions";
+            dataType: "boolean";
+            columnType: "PgBoolean";
+            data: boolean;
+            driverParam: boolean;
+            notNull: true;
+            hasDefault: true;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
+        isLeaderboardHidden: import("drizzle-orm/pg-core").PgColumn<{
+            name: "is_leaderboard_hidden";
             tableName: "competitions";
             dataType: "boolean";
             columnType: "PgBoolean";

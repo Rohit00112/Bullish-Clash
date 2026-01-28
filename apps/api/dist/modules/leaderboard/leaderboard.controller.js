@@ -22,11 +22,13 @@ let LeaderboardController = class LeaderboardController {
     constructor(leaderboardService) {
         this.leaderboardService = leaderboardService;
     }
-    async getLeaderboard(limit, offset) {
-        return this.leaderboardService.getLeaderboard({ limit, offset });
+    async getLeaderboard(role, limit, offset) {
+        const isAdmin = role === 'admin';
+        return this.leaderboardService.getLeaderboard({ limit, offset, isAdmin });
     }
-    async getMyRank(userId) {
-        return this.leaderboardService.getUserRank(userId);
+    async getMyRank(userId, role) {
+        const isAdmin = role === 'admin';
+        return this.leaderboardService.getUserRank(userId, isAdmin);
     }
     async exportLeaderboard(res) {
         const csv = await this.leaderboardService.exportLeaderboard();
@@ -42,10 +44,11 @@ __decorate([
     (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number, description: 'Number of entries (default: 100)' }),
     (0, swagger_1.ApiQuery)({ name: 'offset', required: false, type: Number, description: 'Offset for pagination' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Leaderboard entries' }),
-    __param(0, (0, common_1.Query)('limit')),
-    __param(1, (0, common_1.Query)('offset')),
+    __param(0, (0, auth_guards_1.CurrentUser)('role')),
+    __param(1, (0, common_1.Query)('limit')),
+    __param(2, (0, common_1.Query)('offset')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [String, Number, Number]),
     __metadata("design:returntype", Promise)
 ], LeaderboardController.prototype, "getLeaderboard", null);
 __decorate([
@@ -55,8 +58,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Get current user rank' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'User rank info' }),
     __param(0, (0, auth_guards_1.CurrentUser)('id')),
+    __param(1, (0, auth_guards_1.CurrentUser)('role')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], LeaderboardController.prototype, "getMyRank", null);
 __decorate([

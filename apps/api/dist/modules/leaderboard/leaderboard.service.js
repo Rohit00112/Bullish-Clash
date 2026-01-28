@@ -37,6 +37,14 @@ let LeaderboardService = class LeaderboardService {
         if (!competition) {
             return { entries: [], totalParticipants: 0, updatedAt: new Date() };
         }
+        if (competition.isLeaderboardHidden && !options?.isAdmin) {
+            return {
+                entries: [],
+                totalParticipants: 0,
+                updatedAt: new Date(),
+                isHidden: true
+            };
+        }
         const limit = options?.limit || 100;
         const offset = options?.offset || 0;
         const cacheKey = `leaderboard:${competition.id}`;
@@ -146,8 +154,17 @@ let LeaderboardService = class LeaderboardService {
             updatedAt: new Date(),
         };
     }
-    async getUserRank(userId) {
-        const leaderboard = await this.getLeaderboard({ limit: 10000 });
+    async getUserRank(userId, isAdmin = false) {
+        const competition = await this.competitionService.getActiveCompetition();
+        if (competition?.isLeaderboardHidden && !isAdmin) {
+            return {
+                rank: 0,
+                totalParticipants: 0,
+                entry: null,
+                isHidden: true
+            };
+        }
+        const leaderboard = await this.getLeaderboard({ limit: 10000, isAdmin });
         const entry = leaderboard.entries.find(e => e.userId === userId);
         return {
             rank: entry?.rank || 0,

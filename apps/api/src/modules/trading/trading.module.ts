@@ -11,12 +11,14 @@ import { CompetitionModule } from '../competition/competition.module';
 import { WebSocketModule } from '../websocket/websocket.module';
 import { AchievementsModule } from '../achievements/achievements.module';
 
+
 @Module({
     imports: [
         forwardRef(() => PricesModule),
         forwardRef(() => PortfolioModule),
         forwardRef(() => CompetitionModule),
         forwardRef(() => WebSocketModule),
+
         AchievementsModule,
     ],
     controllers: [TradingController],
@@ -24,3 +26,4 @@ import { AchievementsModule } from '../achievements/achievements.module';
     exports: [TradingService],
 })
 export class TradingModule { }
+

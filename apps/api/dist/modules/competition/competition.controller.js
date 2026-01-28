@@ -88,6 +88,10 @@ let CompetitionController = class CompetitionController {
     async getCompetitionStats(id) {
         return this.competitionService.getCompetitionStats(id);
     }
+    async exportCompetitionReport(id) {
+        const csv = await this.competitionService.generateCompetitionReport(id);
+        return { csv };
+    }
     async createCompetition(dto) {
         return this.competitionService.createCompetition(dto);
     }
@@ -214,6 +218,18 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], CompetitionController.prototype, "getCompetitionStats", null);
+__decorate([
+    (0, common_1.Get)(':id/export'),
+    (0, common_1.UseGuards)(auth_guards_1.JwtAuthGuard, auth_guards_1.RolesGuard),
+    (0, auth_guards_1.Roles)('admin'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Export competition report (CSV)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'CSV Report' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], CompetitionController.prototype, "exportCompetitionReport", null);
 __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseGuards)(auth_guards_1.JwtAuthGuard, auth_guards_1.RolesGuard),

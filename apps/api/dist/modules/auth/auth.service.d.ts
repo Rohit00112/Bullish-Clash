@@ -22,6 +22,12 @@ export declare class AuthService {
         message: string;
     }>;
     login(dto: LoginDto): Promise<AuthResponseDto>;
+    changePassword(userId: string, dto: {
+        password: string;
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     refreshToken(dto: RefreshTokenDto): Promise<AuthResponseDto>;
     private generateTokens;
     private sanitizeUser;

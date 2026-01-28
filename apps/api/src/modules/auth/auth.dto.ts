@@ -53,6 +53,14 @@ export class RefreshTokenDto {
     refreshToken: string;
 }
 
+export class ChangePasswordDto {
+    @ApiProperty({ example: 'NewSecurePass123!' })
+    @IsString()
+    @MinLength(8)
+    @MaxLength(100)
+    password: string;
+}
+
 export class UserResponseDto {
     @ApiProperty()
     id: string;

@@ -5,3 +5,5 @@ export * from './trading';
 export * from './events';
 export * from './watchlist';
 export * from './achievements';
+export * from './bids';
+export * from './remarks';

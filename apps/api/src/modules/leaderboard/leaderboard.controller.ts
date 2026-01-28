@@ -19,10 +19,12 @@ export class LeaderboardController {
     @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Offset for pagination' })
     @ApiResponse({ status: 200, description: 'Leaderboard entries' })
     async getLeaderboard(
+        @CurrentUser('role') role: string,
         @Query('limit') limit?: number,
         @Query('offset') offset?: number,
     ) {
-        return this.leaderboardService.getLeaderboard({ limit, offset });
+        const isAdmin = role === 'admin';
+        return this.leaderboardService.getLeaderboard({ limit, offset, isAdmin });
     }
 
     @Get('my-rank')
@@ -30,8 +32,12 @@ export class LeaderboardController {
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Get current user rank' })
     @ApiResponse({ status: 200, description: 'User rank info' })
-    async getMyRank(@CurrentUser('id') userId: string) {
-        return this.leaderboardService.getUserRank(userId);
+    async getMyRank(
+        @CurrentUser('id') userId: string,
+        @CurrentUser('role') role: string
+    ) {
+        const isAdmin = role === 'admin';
+        return this.leaderboardService.getUserRank(userId, isAdmin);
     }
 
     @Get('export')

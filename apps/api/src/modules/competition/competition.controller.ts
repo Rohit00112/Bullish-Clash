@@ -143,6 +143,21 @@ export class CompetitionController {
         return this.competitionService.getCompetitionStats(id);
     }
 
+    @Get(':id/export')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Export competition report (CSV)' })
+    @ApiResponse({ status: 200, description: 'CSV Report' })
+    async exportCompetitionReport(@Param('id') id: string) {
+        const csv = await this.competitionService.generateCompetitionReport(id);
+        // We return the raw string, or we can use StreamableFile but standard string return works for basic use 
+        // if frontend handles it as blob. Ideally we set headers.
+        // NestJS response manipulation is needed for headers.
+        // For simplicity, returning object with csv string, or better, just string.
+        return { csv };
+    }
+
     @Post()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')

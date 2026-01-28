@@ -17,8 +17,15 @@ import {
     AlertCircle,
     CheckCircle,
     Loader2,
+    Gavel,
+    MessageSquare,
+    FileDown,
+    Eye,
+    EyeOff,
+    Clock,
+    AlertTriangle
 } from 'lucide-react';
-import { competitionApi, symbolsApi, pricesApi, eventsApi } from '@/lib/api';
+import { competitionApi, symbolsApi, pricesApi, eventsApi, biddingApi, authApi } from '@/lib/api';
 import { formatCurrency, formatPercent, formatNumber } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -117,7 +124,107 @@ export default function AdminPage() {
         },
     });
 
-    // Handle quick price update
+    const startBiddingMutation = useMutation({
+        mutationFn: async () => {
+            if (!competition?.competitionId) throw new Error('No competition ID found');
+            return competitionApi.updateStatus(competition.competitionId, 'bidding');
+        },
+        onSuccess: () => {
+            toast({ title: 'Bidding Phase Started' });
+            queryClient.invalidateQueries({ queryKey: ['admin-competition'] });
+        },
+        onError: (err: any) => {
+            toast({
+                title: 'Failed to start bidding',
+                description: err.response?.data?.message || err.message,
+                variant: 'destructive'
+            });
+        }
+    });
+
+    const processBidsMutation = useMutation({
+        mutationFn: async () => {
+            if (!competition?.competitionId) throw new Error('No competition ID found');
+            return biddingApi.processBids(competition.competitionId);
+        },
+        onSuccess: (data) => {
+            toast({
+                title: 'Bids Processed',
+                description: data.data?.message || 'Bids allocated successfully'
+            });
+            queryClient.invalidateQueries({ queryKey: ['admin-competition'] });
+        },
+        onError: (err: any) => {
+            toast({
+                title: 'Processing Failed',
+                description: err.response?.data?.message || err.message,
+                variant: 'destructive'
+            });
+        }
+    });
+
+    const startRemarksMutation = useMutation({
+        mutationFn: async () => {
+            if (!competition?.competitionId) throw new Error('No competition ID found');
+            return competitionApi.updateStatus(competition.competitionId, 'remarks');
+        },
+        onSuccess: () => {
+            toast({ title: 'Remarks Phase Started' });
+            queryClient.invalidateQueries({ queryKey: ['admin-competition'] });
+        },
+        onError: (error: any) => {
+            toast({
+                title: 'Failed to start remarks',
+                description: error.response?.data?.message || 'Error',
+                variant: 'destructive'
+            });
+        }
+    });
+
+    const toggleLeaderboardVisibility = async () => {
+        if (!competition?.competitionId) return;
+        try {
+            await competitionApi.update(competition.competitionId, {
+                isLeaderboardHidden: !competition.isLeaderboardHidden
+            });
+            queryClient.invalidateQueries({ queryKey: ['admin-competition'] });
+            toast({
+                title: competition.isLeaderboardHidden ? 'Leaderboard Visible' : 'Leaderboard Hidden',
+                description: competition.isLeaderboardHidden ? 'Participants can now see the rankings.' : 'Suspense mode active. Leaderboard hidden from participants.'
+            });
+        } catch (error: any) {
+            toast({
+                title: 'Operation Failed',
+                description: error.response?.data?.message || 'Failed to toggle visibility',
+                variant: 'destructive'
+            });
+        }
+    };
+
+    const handleExport = async () => {
+        if (!competition?.competitionId) return;
+        try {
+            const res = await competitionApi.exportReport(competition.competitionId);
+            const csvData = res.data.csv;
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `competition-report-${competition.competitionId}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            toast({ title: 'Report Exported', description: 'CSV file has been downloaded.' });
+        } catch (error: any) {
+            toast({
+                title: 'Export Failed',
+                description: error.response?.data?.message || 'Failed to export report',
+                variant: 'destructive'
+            });
+        }
+    };
+
     const handlePriceUpdate = () => {
         if (!selectedSymbol || !priceChange) return;
 
@@ -146,25 +253,55 @@ export default function AdminPage() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h2 className="text-lg font-semibold">{competition?.name || 'Competition'}</h2>
-                        <p className="text-sm text-muted-foreground">
-                            Status:{' '}
-                            <span
-                                className={`font-medium ${competition?.status === 'active'
-                                    ? 'text-green-500'
-                                    : competition?.status === 'paused'
-                                        ? 'text-yellow-500'
-                                        : competition?.status === 'ended'
-                                            ? 'text-red-500'
-                                            : 'text-muted-foreground'
-                                    }`}
-                            >
-                                {competition?.status || 'draft'}
+                        <div className="flex items-center gap-4 mt-1">
+                            <p className="text-sm text-muted-foreground">
+                                Status:{' '}
+                                <span
+                                    className={`font-medium ${competition?.status === 'active'
+                                        ? 'text-green-500'
+                                        : competition?.status === 'paused'
+                                            ? 'text-yellow-500'
+                                            : competition?.status === 'ended'
+                                                ? 'text-red-500'
+                                                : 'text-muted-foreground'
+                                        }`}
+                                >
+                                    {competition?.status || 'draft'}
+                                </span>
+                            </p>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${competition?.isLeaderboardHidden ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' : 'bg-green-500/10 border-green-500/30 text-green-500'}`}>
+                                {competition?.isLeaderboardHidden ? 'Leaders Hidden' : 'Leaders Visible'}
                             </span>
-                        </p>
+                        </div>
                     </div>
 
                     <div className="flex gap-2">
-                        {/* Start button - show when not active and not ended */}
+                        {(competition?.status === 'scheduled' || competition?.status === 'draft') && (
+                            <button
+                                onClick={() => startBiddingMutation.mutate()}
+                                disabled={startBiddingMutation.isPending}
+                                className="btn-primary flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                            >
+                                <Gavel className="h-4 w-4" />
+                                {startBiddingMutation.isPending ? 'Starting Bidding...' : 'Start Bidding'}
+                            </button>
+                        )}
+
+                        {competition?.status === 'bidding' && (
+                            <button
+                                onClick={() => {
+                                    if (confirm('Are you sure you want to close bidding and allocate shares?')) {
+                                        processBidsMutation.mutate();
+                                    }
+                                }}
+                                disabled={processBidsMutation.isPending}
+                                className="btn-primary flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
+                            >
+                                <CheckCircle className="h-4 w-4" />
+                                {processBidsMutation.isPending ? 'Processing...' : 'Process Bids'}
+                            </button>
+                        )}
+
                         {competition?.status !== 'active' && competition?.status !== 'ended' && (
                             <button
                                 onClick={() => startCompetitionMutation.mutate()}
@@ -172,10 +309,25 @@ export default function AdminPage() {
                                 className="btn-primary flex items-center gap-2"
                             >
                                 <Play className="h-4 w-4" />
-                                {startCompetitionMutation.isPending ? 'Starting...' : 'Start'}
+                                {startCompetitionMutation.isPending ? 'Starting...' : 'Start Market'}
                             </button>
                         )}
-                        {/* Pause button - show when active */}
+
+                        {competition?.status === 'active' && (
+                            <button
+                                onClick={() => {
+                                    if (confirm('Are you sure you want to end trading and start the Remarks phase?')) {
+                                        startRemarksMutation.mutate();
+                                    }
+                                }}
+                                disabled={startRemarksMutation.isPending}
+                                className="btn-primary flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
+                            >
+                                <MessageSquare className="h-4 w-4" />
+                                {startRemarksMutation.isPending ? 'Starting...' : 'Start Remarks'}
+                            </button>
+                        )}
+
                         {competition?.status === 'active' && (
                             <button
                                 onClick={() => pauseCompetitionMutation.mutate()}
@@ -186,7 +338,6 @@ export default function AdminPage() {
                                 {pauseCompetitionMutation.isPending ? 'Pausing...' : 'Pause'}
                             </button>
                         )}
-                        {/* Reset button - always available */}
                         <button
                             onClick={() => {
                                 if (confirm('Are you sure you want to reset the competition? This will clear all portfolios.')) {
@@ -247,7 +398,6 @@ export default function AdminPage() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Quick Price Update */}
                 <div className="card">
                     <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                         <TrendingUp className="h-5 w-5" />
@@ -312,7 +462,6 @@ export default function AdminPage() {
                     </div>
                 </div>
 
-                {/* Quick Links */}
                 <div className="card">
                     <h3 className="text-lg font-semibold mb-4">Admin Actions</h3>
 
@@ -323,7 +472,6 @@ export default function AdminPage() {
                         >
                             <Users className="h-8 w-8 mx-auto mb-2 text-purple-500" />
                             <p className="font-medium">Manage Users</p>
-                            <p className="text-xs text-muted-foreground">Add participants</p>
                         </Link>
 
                         <Link
@@ -332,7 +480,6 @@ export default function AdminPage() {
                         >
                             <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />
                             <p className="font-medium">Create Event</p>
-                            <p className="text-xs text-muted-foreground">Market news & scripts</p>
                         </Link>
 
                         <Link
@@ -341,17 +488,31 @@ export default function AdminPage() {
                         >
                             <TrendingUp className="h-8 w-8 mx-auto mb-2 text-green-500" />
                             <p className="font-medium">Manage Symbols</p>
-                            <p className="text-xs text-muted-foreground">Add/edit stocks</p>
                         </Link>
 
+                        <button
+                            onClick={toggleLeaderboardVisibility}
+                            className={`p-4 rounded-lg transition-colors text-center border ${competition?.isLeaderboardHidden ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-secondary/30 border-transparent hover:bg-secondary/50'}`}
+                        >
+                            {competition?.isLeaderboardHidden ? <Eye className="h-8 w-8 mx-auto mb-2 text-yellow-500" /> : <EyeOff className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />}
+                            <p className="font-medium">{competition?.isLeaderboardHidden ? 'Unhide Scores' : 'Hide Scores'}</p>
+                        </button>
+
                         <Link
-                            href="/dashboard/admin/settings"
+                            href="/dashboard/admin/remarks"
                             className="p-4 bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors text-center"
                         >
-                            <Settings className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
-                            <p className="font-medium">Settings</p>
-                            <p className="text-xs text-muted-foreground">Competition config</p>
+                            <MessageSquare className="h-8 w-8 mx-auto mb-2 text-blue-400" />
+                            <p className="font-medium">Review Remarks</p>
                         </Link>
+
+                        <button
+                            onClick={handleExport}
+                            className="p-4 bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors text-center border border-transparent hover:border-primary/20"
+                        >
+                            <FileDown className="h-8 w-8 mx-auto mb-2 text-green-400" />
+                            <p className="font-medium">Export CSV</p>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -384,20 +545,6 @@ export default function AdminPage() {
                                     <p className="text-sm text-muted-foreground line-clamp-1">
                                         {event.description}
                                     </p>
-                                    <div className="flex gap-2 mt-1">
-                                        {event.affectedSymbols?.map((symbol: any) => (
-                                            <span
-                                                key={symbol.symbolId}
-                                                className={`text-xs px-2 py-0.5 rounded ${symbol.priceChange >= 0
-                                                    ? 'bg-green-500/20 text-green-500'
-                                                    : 'bg-red-500/20 text-red-500'
-                                                    }`}
-                                            >
-                                                {symbol.ticker} {symbol.priceChange >= 0 ? '+' : ''}
-                                                {symbol.priceChange}%
-                                            </span>
-                                        ))}
-                                    </div>
                                 </div>
                                 <span className="text-xs text-muted-foreground">
                                     {event.status}
@@ -409,9 +556,6 @@ export default function AdminPage() {
                     <div className="text-center py-8 text-muted-foreground">
                         <Calendar className="h-12 w-12 mx-auto mb-2 opacity-50" />
                         <p>No events created yet</p>
-                        <Link href="/dashboard/admin/events" className="text-primary hover:underline text-sm">
-                            Create your first event
-                        </Link>
                     </div>
                 )}
             </div>

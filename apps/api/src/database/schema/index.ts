@@ -23,3 +23,9 @@ export * from './watchlist';
 
 // Achievements
 export * from './achievements';
+
+// Bidding
+export * from './bids';
+
+// Remarks
+export * from './remarks';

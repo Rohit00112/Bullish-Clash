@@ -22,6 +22,7 @@ import { useNotifications } from '@/hooks/use-notifications';
 import { TradingChart, generateSampleData } from '@/components/ui/trading-chart';
 import { OrderBook } from '@/components/ui/order-book';
 import { OpenOrders } from '@/components/ui/open-orders';
+import { BiddingPanel } from '@/components/ui/bidding-panel';
 import { Time } from 'lightweight-charts';
 
 type OrderSide = 'buy' | 'sell';
@@ -33,6 +34,7 @@ interface Symbol {
     companyName: string;
     sector: string;
     isActive: boolean;
+    listedShares?: number;
 }
 
 interface Position {
@@ -400,7 +402,12 @@ export default function TradePage() {
         );
     }
 
-    // Show blocked message when competition is not active
+    // Show Bidding Panel if status is 'bidding'
+    if (competition?.status === 'bidding') {
+        return <BiddingPanel />;
+    }
+
+    // Show blocked message when competition is not active and NOT in bidding
     if (!isCompetitionActive) {
         const statusMessage = competition?.status === 'ended'
             ? 'The competition has ended. Thank you for participating!'
@@ -650,6 +657,14 @@ export default function TradePage() {
                                         <p className="text-sm text-muted-foreground">
                                             Position: {formatNumber(selectedPosition.quantity)} shares @{' '}
                                             {formatCurrency(selectedPosition.avgPrice)}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {selectedSymbol.listedShares && (
+                                    <div className="mt-3 pt-3 border-t border-border">
+                                        <p className="text-sm text-muted-foreground">
+                                            Market Supply: {formatNumber(selectedSymbol.listedShares)} shares
                                         </p>
                                     </div>
                                 )}

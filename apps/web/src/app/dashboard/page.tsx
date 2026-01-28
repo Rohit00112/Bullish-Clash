@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { TrendingUp, TrendingDown, Wallet, PieChart, Activity, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, PieChart, Activity, Clock, MessageSquare } from 'lucide-react';
 import { portfolioApi, competitionApi, leaderboardApi, pricesApi } from '@/lib/api';
 import { formatCurrency, formatPercent, getCountdown, getPriceChangeClass } from '@/lib/utils';
 import { usePriceStore } from '@/stores/price-store';
@@ -100,6 +100,42 @@ export default function DashboardPage() {
                     </div>
                 )}
             </div>
+
+            {/* Bidding Active Banner */}
+            {competition?.status === 'bidding' && (
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-blue-500/20 p-2 rounded-full">
+                            <Activity className="h-5 w-5 text-blue-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-blue-500">Bidding Phase is Active!</h3>
+                            <p className="text-sm text-muted-foreground">Place your bids for the upcoming competition.</p>
+                        </div>
+                    </div>
+                    <Link href="/dashboard/trade" className="btn-primary bg-blue-500 hover:bg-blue-600">
+                        Go to Bidding
+                    </Link>
+                </div>
+            )}
+
+            {/* Remarks Active Banner */}
+            {competition?.status === 'remarks' && (
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-purple-500/20 p-2 rounded-full">
+                            <MessageSquare className="h-5 w-5 text-purple-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-purple-500">Trading Session Ended - Remarks Phase</h3>
+                            <p className="text-sm text-muted-foreground">Please submit your trade justifications and risk assessment.</p>
+                        </div>
+                    </div>
+                    <Link href="/dashboard/remarks" className="btn-primary bg-purple-500 hover:bg-purple-600">
+                        Submit Remarks
+                    </Link>
+                </div>
+            )}
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

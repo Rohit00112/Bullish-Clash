@@ -26,6 +26,8 @@ const redis_module_1 = require("./modules/redis/redis.module");
 const email_module_1 = require("./modules/email/email.module");
 const watchlist_module_1 = require("./modules/watchlist/watchlist.module");
 const achievements_module_1 = require("./modules/achievements/achievements.module");
+const bidding_module_1 = require("./modules/bidding/bidding.module");
+const remarks_module_1 = require("./modules/remarks/remarks.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -69,6 +71,8 @@ exports.AppModule = AppModule = __decorate([
             competition_module_1.CompetitionModule,
             watchlist_module_1.WatchlistModule,
             achievements_module_1.AchievementsModule,
+            bidding_module_1.BiddingModule,
+            remarks_module_1.RemarksModule,
         ],
     })
 ], AppModule);

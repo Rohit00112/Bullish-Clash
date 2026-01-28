@@ -111,6 +111,18 @@ export declare const users: import("drizzle-orm/pg-core").PgTableWithColumns<{
             enumValues: undefined;
             baseColumn: never;
         }, {}, {}>;
+        mustChangePassword: import("drizzle-orm/pg-core").PgColumn<{
+            name: "must_change_password";
+            tableName: "users";
+            dataType: "boolean";
+            columnType: "PgBoolean";
+            data: boolean;
+            driverParam: boolean;
+            notNull: true;
+            hasDefault: true;
+            enumValues: undefined;
+            baseColumn: never;
+        }, {}, {}>;
         lastLoginAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "last_login_at";
             tableName: "users";

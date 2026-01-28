@@ -91,6 +91,8 @@ export const authApi = {
         password: string;
         phone?: string;
     }) => api.post('/auth/create-user', data),
+
+    changePassword: (password: string) => api.post('/auth/change-password', { password }),
 };
 
 // ==================== SYMBOLS ====================
@@ -204,6 +206,7 @@ export const competitionApi = {
     reset: () => api.post('/competition/active/reset'),
     getSettings: () => api.get('/competition/active/settings'),
     updateSettings: (data: any) => api.patch('/competition/active/settings', data),
+    exportReport: (id: string) => api.get(`/competition/${id}/export`),
 };
 
 // ==================== EVENTS (Admin) ====================
@@ -283,4 +286,33 @@ export const achievementsApi = {
     // Get another user's stats (public)
     getUserStats: (userId: string) =>
         api.get(`/achievements/user/${userId}/stats`),
+};
+
+// ==================== BIDDING ====================
+
+export const biddingApi = {
+    placeBid: (data: { symbolId: string; quantity: number; price: number }) =>
+        api.post('/bidding', data),
+
+    getMyBids: () => api.get('/bidding/me'),
+
+    // Admin
+    processBids: (competitionId: string) =>
+        api.post(`/bidding/process/${competitionId}`),
+};
+
+// ==================== REMARKS ====================
+
+export const remarksApi = {
+    create: (data: {
+        type: 'trade_justification' | 'strategy' | 'risk_assessment' | 'market_sentiment';
+        content: string;
+        title?: string;
+        symbolId?: string;
+    }) => api.post('/remarks', data),
+
+    getMyRemarks: () => api.get('/remarks/me'),
+    getAll: (competitionId: string) => api.get(`/remarks/competition/${competitionId}`),
+    scoreRemark: (remarkId: string, score: number) => api.patch(`/remarks/${remarkId}/score`, { score }),
+    update: (remarkId: string, content: string) => api.patch(`/remarks/${remarkId}`, { content }),
 };

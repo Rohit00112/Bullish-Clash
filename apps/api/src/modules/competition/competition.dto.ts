@@ -68,6 +68,11 @@ export class CreateCompetitionDto {
     @IsOptional()
     @IsBoolean()
     isDefault?: boolean;
+
+    @ApiProperty({ required: false, default: false })
+    @IsOptional()
+    @IsBoolean()
+    isLeaderboardHidden?: boolean;
 }
 
 export class UpdateCompetitionDto {
@@ -81,10 +86,10 @@ export class UpdateCompetitionDto {
     @IsString()
     description?: string;
 
-    @ApiProperty({ required: false, enum: ['draft', 'scheduled', 'active', 'paused', 'ended'] })
+    @ApiProperty({ required: false, enum: ['draft', 'scheduled', 'active', 'paused', 'ended', 'remarks'] })
     @IsOptional()
-    @IsEnum(['draft', 'scheduled', 'active', 'paused', 'ended'])
-    status?: 'draft' | 'scheduled' | 'active' | 'paused' | 'ended';
+    @IsEnum(['draft', 'scheduled', 'active', 'paused', 'ended', 'remarks'])
+    status?: 'draft' | 'scheduled' | 'active' | 'paused' | 'ended' | 'remarks';
 
     @ApiProperty({ required: false })
     @IsOptional()
@@ -140,4 +145,9 @@ export class UpdateCompetitionDto {
     @IsOptional()
     @IsBoolean()
     isDefault?: boolean;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsBoolean()
+    isLeaderboardHidden?: boolean;
 }

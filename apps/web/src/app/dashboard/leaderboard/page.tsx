@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Trophy, Medal, Crown, TrendingUp, Users, Star } from 'lucide-react';
+import { Trophy, Medal, Crown, TrendingUp, Users, Star, EyeOff } from 'lucide-react';
 import { leaderboardApi } from '@/lib/api';
 import { formatCurrency, formatPercent, formatNumber, getPriceChangeClass } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth-store';
@@ -86,6 +86,36 @@ export default function LeaderboardPage() {
             </div>
         );
     };
+
+    if (leaderboardData?.isHidden) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 space-y-6 animate-in fade-in zoom-in duration-500">
+                <div className="relative">
+                    <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
+                    <div className="relative bg-secondary/30 p-8 rounded-full border border-white/10 shadow-2xl">
+                        <EyeOff className="h-20 w-20 text-primary opacity-50" />
+                    </div>
+                </div>
+                <div className="text-center space-y-2 max-w-md">
+                    <h1 className="text-3xl font-bold tracking-tight">Leaderboard in Suspense</h1>
+                    <p className="text-muted-foreground">
+                        The administrator has hidden the rankings to maintain suspense for the final results!
+                    </p>
+                </div>
+                <div className="flex gap-4 p-4 bg-secondary/10 rounded-xl border border-white/5 backdrop-blur-sm">
+                    <div className="text-center px-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Status</p>
+                        <p className="text-lg font-semibold text-yellow-500">Hidden</p>
+                    </div>
+                    <div className="border-l border-white/10"></div>
+                    <div className="text-center px-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Phase</p>
+                        <p className="text-lg font-semibold">Final Review</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">

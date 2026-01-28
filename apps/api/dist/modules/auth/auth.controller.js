@@ -29,6 +29,9 @@ let AuthController = class AuthController {
     async refreshToken(dto) {
         return this.authService.refreshToken(dto);
     }
+    async changePassword(userId, dto) {
+        return this.authService.changePassword(userId, dto);
+    }
     async createUser(dto) {
         return this.authService.createUserWithEmail(dto);
     }
@@ -56,6 +59,18 @@ __decorate([
     __metadata("design:paramtypes", [auth_dto_1.RefreshTokenDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "refreshToken", null);
+__decorate([
+    (0, common_1.Post)('change-password'),
+    (0, common_1.UseGuards)(auth_guards_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Change password' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Password changed successfully' }),
+    __param(0, (0, auth_guards_1.CurrentUser)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, auth_dto_1.ChangePasswordDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "changePassword", null);
 __decorate([
     (0, common_1.Post)('create-user'),
     (0, common_1.UseGuards)(auth_guards_1.JwtAuthGuard, auth_guards_1.RolesGuard),

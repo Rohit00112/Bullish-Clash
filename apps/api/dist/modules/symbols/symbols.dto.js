@@ -68,13 +68,21 @@ __decorate([
     __metadata("design:type", String)
 ], CreateSymbolDto.prototype, "logoUrl", void 0);
 class UpdateSymbolDto {
+    symbol;
     companyName;
     sector;
+    basePrice;
     listedShares;
     logoUrl;
     isActive;
 }
 exports.UpdateSymbolDto = UpdateSymbolDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateSymbolDto.prototype, "symbol", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ required: false }),
     (0, class_validator_1.IsOptional)(),
@@ -87,6 +95,13 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateSymbolDto.prototype, "sector", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0.01),
+    __metadata("design:type", Number)
+], UpdateSymbolDto.prototype, "basePrice", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ required: false }),
     (0, class_validator_1.IsOptional)(),

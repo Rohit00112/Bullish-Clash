@@ -15,6 +15,27 @@
       "when": 1769052669180,
       "tag": "0001_conscious_hawkeye",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1769530285035,
+      "tag": "0002_ordinary_iron_patriot",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1769531843207,
+      "tag": "0003_freezing_piledriver",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1769532504408,
+      "tag": "0004_mature_shatterstar",
+      "breakpoints": true
     }
   ]
 }

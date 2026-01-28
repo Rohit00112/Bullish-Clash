@@ -126,7 +126,10 @@ export class SymbolsService {
 
         const [updated] = await this.db.update(schema.symbols)
             .set({
+                ...(dto.symbol && { symbol: dto.symbol.toUpperCase() }),
                 ...(dto.companyName && { companyName: dto.companyName }),
+                ...(dto.sector && { sector: dto.sector as any }),
+                ...(dto.basePrice && { basePrice: dto.basePrice.toString() }),
                 ...(dto.sector && { sector: dto.sector as any }),
                 ...(dto.listedShares !== undefined && { listedShares: dto.listedShares }),
                 ...(dto.logoUrl !== undefined && { logoUrl: dto.logoUrl }),

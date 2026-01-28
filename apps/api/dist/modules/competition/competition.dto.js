@@ -26,6 +26,7 @@ class CreateCompetitionDto {
     tradingHoursStart;
     tradingHoursEnd;
     isDefault;
+    isLeaderboardHidden;
 }
 exports.CreateCompetitionDto = CreateCompetitionDto;
 __decorate([
@@ -104,6 +105,12 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], CreateCompetitionDto.prototype, "isDefault", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, default: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreateCompetitionDto.prototype, "isLeaderboardHidden", void 0);
 class UpdateCompetitionDto {
     name;
     description;
@@ -119,6 +126,7 @@ class UpdateCompetitionDto {
     tradingHoursStart;
     tradingHoursEnd;
     isDefault;
+    isLeaderboardHidden;
 }
 exports.UpdateCompetitionDto = UpdateCompetitionDto;
 __decorate([
@@ -134,9 +142,9 @@ __decorate([
     __metadata("design:type", String)
 ], UpdateCompetitionDto.prototype, "description", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ required: false, enum: ['draft', 'scheduled', 'active', 'paused', 'ended'] }),
+    (0, swagger_1.ApiProperty)({ required: false, enum: ['draft', 'scheduled', 'active', 'paused', 'ended', 'remarks'] }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEnum)(['draft', 'scheduled', 'active', 'paused', 'ended']),
+    (0, class_validator_1.IsEnum)(['draft', 'scheduled', 'active', 'paused', 'ended', 'remarks']),
     __metadata("design:type", String)
 ], UpdateCompetitionDto.prototype, "status", void 0);
 __decorate([
@@ -205,4 +213,10 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], UpdateCompetitionDto.prototype, "isDefault", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateCompetitionDto.prototype, "isLeaderboardHidden", void 0);
 //# sourceMappingURL=competition.dto.js.map

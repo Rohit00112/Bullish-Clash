@@ -1,0 +1,1 @@
+ALTER TABLE "symbols" ADD COLUMN "total_quantity" bigint DEFAULT 100000 NOT NULL;

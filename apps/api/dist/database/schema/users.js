@@ -13,6 +13,7 @@ exports.users = (0, pg_core_1.pgTable)('users', {
     avatarUrl: (0, pg_core_1.text)('avatar_url'),
     phone: (0, pg_core_1.varchar)('phone', { length: 20 }),
     isActive: (0, pg_core_1.boolean)('is_active').notNull().default(true),
+    mustChangePassword: (0, pg_core_1.boolean)('must_change_password').notNull().default(false),
     lastLoginAt: (0, pg_core_1.timestamp)('last_login_at', { withTimezone: true }),
     createdAt: (0, pg_core_1.timestamp)('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)('updated_at', { withTimezone: true }).notNull().defaultNow(),

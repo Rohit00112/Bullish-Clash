@@ -52,12 +52,23 @@ export class UpdateSymbolDto {
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
+    symbol?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
     companyName?: string;
 
     @ApiProperty({ required: false, enum: SECTORS })
     @IsOptional()
     @IsString()
     sector?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    @Min(0.01)
+    basePrice?: number;
 
     @ApiProperty({ required: false })
     @IsOptional()

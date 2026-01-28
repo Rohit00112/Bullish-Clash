@@ -28,6 +28,7 @@ export class CompetitionService {
                 where: or(
                     eq(schema.competitions.status, 'active'),
                     eq(schema.competitions.status, 'scheduled'),
+                    eq(schema.competitions.status, 'bidding'),
                 ),
                 orderBy: [desc(schema.competitions.startTime)],
             });
@@ -145,10 +146,12 @@ export class CompetitionService {
 
         // Validate status transitions
         const validTransitions: Record<string, string[]> = {
-            draft: ['scheduled', 'active'],
-            scheduled: ['active', 'draft'],
-            active: ['paused', 'ended'],
+            draft: ['scheduled', 'bidding', 'active'],
+            scheduled: ['bidding', 'active', 'draft'],
+            bidding: ['active', 'paused', 'ended'],
+            active: ['paused', 'remarks', 'ended'],
             paused: ['active', 'ended'],
+            remarks: ['ended'],
             ended: [],
         };
 
@@ -339,5 +342,87 @@ export class CompetitionService {
         const seconds = Math.floor((ms % (1000 * 60)) / 1000);
 
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    async generateCompetitionReport(competitionId: string) {
+        const competition = await this.getCompetition(competitionId);
+
+        // Fetch all participants with their portfolios and user details
+        const participants = await this.db.query.competitionParticipants.findMany({
+            where: and(
+                eq(schema.competitionParticipants.competitionId, competitionId),
+                eq(schema.competitionParticipants.isActive, true),
+            ),
+        });
+
+        const reportData = await Promise.all(participants.map(async (p: any) => {
+            const user = await this.db.query.users.findFirst({
+                where: eq(schema.users.id, p.userId),
+            });
+
+            const portfolio = await this.db.query.portfolios.findFirst({
+                where: and(
+                    eq(schema.portfolios.userId, p.userId),
+                    eq(schema.portfolios.competitionId, competitionId),
+                ),
+            });
+
+            const remarks = await this.db.query.remarks.findMany({
+                where: and(
+                    eq(schema.remarks.userId, p.userId),
+                    eq(schema.remarks.competitionId, competitionId),
+                ),
+            });
+
+            // Calculate aggregate score if multiple remarks scored? 
+            // Or just list them. Let's do a summary line per user.
+            const totalScore = remarks.reduce((sum: number, r: any) => sum + (r.score || 0), 0);
+            const strategyRemark = remarks.find((r: any) => r.type === 'strategy')?.content || '';
+            const riskRemark = remarks.find((r: any) => r.type === 'risk_assessment')?.content || '';
+            const tradeJustificationsCount = remarks.filter((r: any) => r.type === 'trade_justification').length;
+
+            return {
+                userId: p.userId,
+                name: user?.fullName || 'Unknown',
+                email: user?.email || 'Unknown',
+                totalTrades: portfolio?.tradeCount || 0,
+                realizedPL: portfolio?.realizedPL || 0,
+                cash: portfolio?.cash || 0,
+                remarksScore: totalScore,
+                tradeJustificationsCount,
+                strategyRemark: strategyRemark.replace(/"/g, '""'), // Escape CSV quotes
+                riskRemark: riskRemark.replace(/"/g, '""'),
+            };
+        }));
+
+        // Generate CSV Header
+        const header = [
+            'User ID',
+            'Name',
+            'Email',
+            'Total Trades',
+            'Realized P/L',
+            'Cash Balance',
+            'Total Score',
+            'Justifications Count',
+            'Strategy Remark',
+            'Risk Remark'
+        ].join(',');
+
+        // Generate Rows
+        const rows = reportData.map(d => [
+            d.userId,
+            `"${d.name}"`,
+            d.email,
+            d.totalTrades,
+            d.realizedPL,
+            d.cash,
+            d.remarksScore,
+            d.tradeJustificationsCount,
+            `"${d.strategyRemark}"`,
+            `"${d.riskRemark}"`
+        ].join(','));
+
+        return [header, ...rows].join('\n');
     }
 }

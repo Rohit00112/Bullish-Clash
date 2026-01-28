@@ -12,6 +12,9 @@ export declare class LoginDto {
 export declare class RefreshTokenDto {
     refreshToken: string;
 }
+export declare class ChangePasswordDto {
+    password: string;
+}
 export declare class UserResponseDto {
     id: string;
     email: string;

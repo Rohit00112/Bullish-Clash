@@ -35,12 +35,24 @@ export default function LoginPage() {
 
         try {
             await login(email, password);
-            toast({
-                title: 'Welcome back!',
-                description: 'Login successful',
-                variant: 'success',
-            });
-            router.push('/dashboard');
+
+            const user = useAuthStore.getState().user;
+
+            if (user?.mustChangePassword) {
+                toast({
+                    title: 'Login successful',
+                    description: 'Please change your password to continue',
+                    variant: 'default',
+                });
+                router.push('/change-password');
+            } else {
+                toast({
+                    title: 'Welcome back!',
+                    description: 'Login successful',
+                    variant: 'success',
+                });
+                router.push('/dashboard');
+            }
         } catch (err) {
             toast({
                 title: 'Login failed',
@@ -157,12 +169,7 @@ export default function LoginPage() {
                         Don&apos;t have an account? Contact your administrator.
                     </p>
 
-                    {/* Demo credentials */}
-                    <div className="mt-6 p-4 bg-secondary/50 rounded-lg">
-                        <p className="text-sm font-medium mb-2">Demo Credentials:</p>
-                        <p className="text-xs text-muted-foreground">Email: demo@bullishclash.com</p>
-                        <p className="text-xs text-muted-foreground">Password: demo123</p>
-                    </div>
+
                 </div>
             </div>
         </div>

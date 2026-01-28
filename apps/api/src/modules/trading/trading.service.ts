@@ -13,6 +13,7 @@ import { PricesService } from '../prices/prices.service';
 import { CompetitionService } from '../competition/competition.service';
 import { TradingGateway } from '../websocket/trading.gateway';
 import { AchievementsService } from '../achievements/achievements.service';
+
 import { PlaceOrderDto, CancelOrderDto, EditOrderDto } from './trading.dto';
 import Redis from 'ioredis';
 
@@ -37,6 +38,7 @@ export class TradingService {
         @Inject(forwardRef(() => PricesService)) private readonly pricesService: PricesService,
         @Inject(forwardRef(() => CompetitionService)) private readonly competitionService: CompetitionService,
         @Inject(forwardRef(() => TradingGateway)) private readonly tradingGateway: TradingGateway,
+
         private readonly achievementsService: AchievementsService,
     ) { }
 
@@ -51,7 +53,7 @@ export class TradingService {
         }
 
         if (competition.status !== 'active') {
-            throw new BadRequestException('Competition is not active. Trading is disabled.');
+            throw new BadRequestException(`Competition is not active (Status: ${competition.status}). Trading is disabled.`);
         }
 
         const now = new Date();
@@ -78,6 +80,18 @@ export class TradingService {
 
         if (!portfolio) {
             throw new BadRequestException('Portfolio not found. Please join the competition first.');
+        }
+
+        // For BUY orders, validate bid allocation for new symbols (symbols user doesn't already hold)
+        if (dto.side === 'buy') {
+            const existingHolding = await this.db.query.holdings.findFirst({
+                where: and(
+                    eq(schema.holdings.userId, userId),
+                    eq(schema.holdings.competitionId, competition.id),
+                    eq(schema.holdings.symbolId, dto.symbolId),
+                ),
+            });
+
         }
 
         // Daily trade limit check
@@ -152,6 +166,31 @@ export class TradingService {
                 if (newValue > maxPositionValue) {
                     throw new BadRequestException(
                         `Position would exceed maximum allowed (${competition.maxPositionSize}% = रू${maxPositionValue.toLocaleString()})`
+                    );
+                }
+            }
+
+            // Check symbol quantity limit - ensure total holdings don't exceed listed shares
+            const symbol = await this.db.query.symbols.findFirst({
+                where: eq(schema.symbols.id, dto.symbolId),
+            });
+
+            if (symbol?.listedShares) {
+                // Get total quantity held by ALL users for this symbol in this competition
+                const totalHeldResult = await this.db
+                    .select({ total: sql<number>`COALESCE(SUM(quantity), 0)` })
+                    .from(schema.holdings)
+                    .where(and(
+                        eq(schema.holdings.symbolId, dto.symbolId),
+                        eq(schema.holdings.competitionId, competition.id),
+                    ));
+
+                const currentlyHeld = Number(totalHeldResult[0]?.total) || 0;
+                const availableInMarket = symbol.listedShares - currentlyHeld;
+
+                if (dto.quantity > availableInMarket) {
+                    throw new BadRequestException(
+                        `Insufficient shares available in market. Requested: ${dto.quantity}, Available: ${availableInMarket} of ${symbol.listedShares.toLocaleString()} total`
                     );
                 }
             }

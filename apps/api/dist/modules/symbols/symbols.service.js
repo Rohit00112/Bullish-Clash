@@ -104,7 +104,10 @@ let SymbolsService = class SymbolsService {
         await this.findById(id);
         const [updated] = await this.db.update(schema.symbols)
             .set({
+            ...(dto.symbol && { symbol: dto.symbol.toUpperCase() }),
             ...(dto.companyName && { companyName: dto.companyName }),
+            ...(dto.sector && { sector: dto.sector }),
+            ...(dto.basePrice && { basePrice: dto.basePrice.toString() }),
             ...(dto.sector && { sector: dto.sector }),
             ...(dto.listedShares !== undefined && { listedShares: dto.listedShares }),
             ...(dto.logoUrl !== undefined && { logoUrl: dto.logoUrl }),

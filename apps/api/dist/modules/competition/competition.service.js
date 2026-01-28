@@ -29,7 +29,7 @@ let CompetitionService = class CompetitionService {
         });
         if (!competition) {
             competition = await this.db.query.competitions.findFirst({
-                where: (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(schema.competitions.status, 'active'), (0, drizzle_orm_1.eq)(schema.competitions.status, 'scheduled')),
+                where: (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(schema.competitions.status, 'active'), (0, drizzle_orm_1.eq)(schema.competitions.status, 'scheduled'), (0, drizzle_orm_1.eq)(schema.competitions.status, 'bidding')),
                 orderBy: [(0, drizzle_orm_1.desc)(schema.competitions.startTime)],
             });
         }
@@ -133,10 +133,12 @@ let CompetitionService = class CompetitionService {
     async updateStatus(id, status) {
         const competition = await this.getCompetition(id);
         const validTransitions = {
-            draft: ['scheduled', 'active'],
-            scheduled: ['active', 'draft'],
-            active: ['paused', 'ended'],
+            draft: ['scheduled', 'bidding', 'active'],
+            scheduled: ['bidding', 'active', 'draft'],
+            bidding: ['active', 'paused', 'ended'],
+            active: ['paused', 'remarks', 'ended'],
             paused: ['active', 'ended'],
+            remarks: ['ended'],
             ended: [],
         };
         if (!validTransitions[competition.status]?.includes(status)) {
@@ -260,6 +262,64 @@ let CompetitionService = class CompetitionService {
         const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((ms % (1000 * 60)) / 1000);
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    async generateCompetitionReport(competitionId) {
+        const competition = await this.getCompetition(competitionId);
+        const participants = await this.db.query.competitionParticipants.findMany({
+            where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema.competitionParticipants.competitionId, competitionId), (0, drizzle_orm_1.eq)(schema.competitionParticipants.isActive, true)),
+        });
+        const reportData = await Promise.all(participants.map(async (p) => {
+            const user = await this.db.query.users.findFirst({
+                where: (0, drizzle_orm_1.eq)(schema.users.id, p.userId),
+            });
+            const portfolio = await this.db.query.portfolios.findFirst({
+                where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema.portfolios.userId, p.userId), (0, drizzle_orm_1.eq)(schema.portfolios.competitionId, competitionId)),
+            });
+            const remarks = await this.db.query.remarks.findMany({
+                where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema.remarks.userId, p.userId), (0, drizzle_orm_1.eq)(schema.remarks.competitionId, competitionId)),
+            });
+            const totalScore = remarks.reduce((sum, r) => sum + (r.score || 0), 0);
+            const strategyRemark = remarks.find((r) => r.type === 'strategy')?.content || '';
+            const riskRemark = remarks.find((r) => r.type === 'risk_assessment')?.content || '';
+            const tradeJustificationsCount = remarks.filter((r) => r.type === 'trade_justification').length;
+            return {
+                userId: p.userId,
+                name: user?.fullName || 'Unknown',
+                email: user?.email || 'Unknown',
+                totalTrades: portfolio?.tradeCount || 0,
+                realizedPL: portfolio?.realizedPL || 0,
+                cash: portfolio?.cash || 0,
+                remarksScore: totalScore,
+                tradeJustificationsCount,
+                strategyRemark: strategyRemark.replace(/"/g, '""'),
+                riskRemark: riskRemark.replace(/"/g, '""'),
+            };
+        }));
+        const header = [
+            'User ID',
+            'Name',
+            'Email',
+            'Total Trades',
+            'Realized P/L',
+            'Cash Balance',
+            'Total Score',
+            'Justifications Count',
+            'Strategy Remark',
+            'Risk Remark'
+        ].join(',');
+        const rows = reportData.map(d => [
+            d.userId,
+            `"${d.name}"`,
+            d.email,
+            d.totalTrades,
+            d.realizedPL,
+            d.cash,
+            d.remarksScore,
+            d.tradeJustificationsCount,
+            `"${d.strategyRemark}"`,
+            `"${d.riskRemark}"`
+        ].join(','));
+        return [header, ...rows].join('\n');
     }
 };
 exports.CompetitionService = CompetitionService;

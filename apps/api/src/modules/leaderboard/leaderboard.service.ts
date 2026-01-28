@@ -39,15 +39,26 @@ export class LeaderboardService {
     ) { }
 
     // Get full leaderboard
-    async getLeaderboard(options?: { limit?: number; offset?: number }): Promise<{
+    async getLeaderboard(options?: { limit?: number; offset?: number; isAdmin?: boolean }): Promise<{
         entries: LeaderboardEntry[];
         totalParticipants: number;
         updatedAt: Date;
+        isHidden?: boolean;
     }> {
         const competition = await this.competitionService.getActiveCompetition();
 
         if (!competition) {
             return { entries: [], totalParticipants: 0, updatedAt: new Date() };
+        }
+
+        // If leaderboard is hidden and user is not admin, return empty entries or minimal info
+        if (competition.isLeaderboardHidden && !options?.isAdmin) {
+            return {
+                entries: [],
+                totalParticipants: 0, // We could return real count but entries empty
+                updatedAt: new Date(),
+                isHidden: true
+            };
         }
 
         const limit = options?.limit || 100;
@@ -212,12 +223,23 @@ export class LeaderboardService {
     }
 
     // Get user's rank
-    async getUserRank(userId: string): Promise<{
+    async getUserRank(userId: string, isAdmin: boolean = false): Promise<{
         rank: number;
         totalParticipants: number;
         entry: LeaderboardEntry | null;
+        isHidden?: boolean;
     }> {
-        const leaderboard = await this.getLeaderboard({ limit: 10000 });
+        const competition = await this.competitionService.getActiveCompetition();
+        if (competition?.isLeaderboardHidden && !isAdmin) {
+            return {
+                rank: 0,
+                totalParticipants: 0,
+                entry: null,
+                isHidden: true
+            };
+        }
+
+        const leaderboard = await this.getLeaderboard({ limit: 10000, isAdmin });
         const entry = leaderboard.entries.find(e => e.userId === userId);
 
         return {

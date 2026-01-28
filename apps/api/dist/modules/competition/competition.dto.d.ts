@@ -12,11 +12,12 @@ export declare class CreateCompetitionDto {
     tradingHoursStart?: string;
     tradingHoursEnd?: string;
     isDefault?: boolean;
+    isLeaderboardHidden?: boolean;
 }
 export declare class UpdateCompetitionDto {
     name?: string;
     description?: string;
-    status?: 'draft' | 'scheduled' | 'active' | 'paused' | 'ended';
+    status?: 'draft' | 'scheduled' | 'active' | 'paused' | 'ended' | 'remarks';
     startingCash?: number;
     commissionRate?: number;
     maxPositionSize?: number;
@@ -28,4 +29,5 @@ export declare class UpdateCompetitionDto {
     tradingHoursStart?: string;
     tradingHoursEnd?: string;
     isDefault?: boolean;
+    isLeaderboardHidden?: boolean;
 }

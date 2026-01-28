@@ -3,15 +3,17 @@ import { LeaderboardService } from './leaderboard.service';
 export declare class LeaderboardController {
     private readonly leaderboardService;
     constructor(leaderboardService: LeaderboardService);
-    getLeaderboard(limit?: number, offset?: number): Promise<{
+    getLeaderboard(role: string, limit?: number, offset?: number): Promise<{
         entries: import("./leaderboard.service").LeaderboardEntry[];
         totalParticipants: number;
         updatedAt: Date;
+        isHidden?: boolean;
     }>;
-    getMyRank(userId: string): Promise<{
+    getMyRank(userId: string, role: string): Promise<{
         rank: number;
         totalParticipants: number;
         entry: import("./leaderboard.service").LeaderboardEntry | null;
+        isHidden?: boolean;
     }>;
     exportLeaderboard(res: Response): Promise<void>;
 }

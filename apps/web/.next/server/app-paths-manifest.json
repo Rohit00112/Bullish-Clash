@@ -1,12 +1,8 @@
 {
   "/dashboard/trade/page": "app/dashboard/trade/page.js",
-  "/dashboard/chart/page": "app/dashboard/chart/page.js",
-  "/dashboard/portfolio/page": "app/dashboard/portfolio/page.js",
   "/dashboard/leaderboard/page": "app/dashboard/leaderboard/page.js",
-  "/dashboard/news/page": "app/dashboard/news/page.js",
-  "/dashboard/settings/page": "app/dashboard/settings/page.js",
-  "/dashboard/history/page": "app/dashboard/history/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/achievements/page": "app/dashboard/achievements/page.js",
-  "/dashboard/admin/page": "app/dashboard/admin/page.js"
+  "/dashboard/remarks/page": "app/dashboard/remarks/page.js",
+  "/dashboard/admin/page": "app/dashboard/admin/page.js",
+  "/dashboard/admin/remarks/page": "app/dashboard/admin/remarks/page.js",
+  "/dashboard/admin/users/page": "app/dashboard/admin/users/page.js"
 }

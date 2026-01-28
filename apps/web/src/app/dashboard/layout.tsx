@@ -22,6 +22,7 @@ import {
     Newspaper,
     Star,
     Award,
+    MessageSquare,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useWebSocket } from '@/hooks/use-websocket';
@@ -44,6 +45,7 @@ const adminNavigation = [
     { name: 'Events', href: '/dashboard/admin/events', icon: Calendar },
     { name: 'Symbols', href: '/dashboard/admin/symbols', icon: BarChart3 },
     { name: 'Settings', href: '/dashboard/admin/settings', icon: Settings },
+    { name: 'Remarks', href: '/dashboard/admin/remarks', icon: MessageSquare },
     { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: Trophy },
 ];
 

@@ -29,4 +29,5 @@ export declare class CompetitionService {
         message: string;
     }>;
     private formatRemainingTime;
+    generateCompetitionReport(competitionId: string): Promise<string>;
 }

@@ -22,6 +22,8 @@ import { RedisModule } from './modules/redis/redis.module';
 import { EmailModule } from './modules/email/email.module';
 import { WatchlistModule } from './modules/watchlist/watchlist.module';
 import { AchievementsModule } from './modules/achievements/achievements.module';
+import { BiddingModule } from './modules/bidding/bidding.module';
+import { RemarksModule } from './modules/remarks/remarks.module';
 
 @Module({
     imports: [
@@ -71,6 +73,8 @@ import { AchievementsModule } from './modules/achievements/achievements.module';
         CompetitionModule,
         WatchlistModule,
         AchievementsModule,
+        BiddingModule,
+        RemarksModule,
     ],
 })
 export class AppModule { }

@@ -170,6 +170,7 @@ let AuthService = class AuthService {
             phone: dto.phone,
             role: 'participant',
             isActive: true,
+            mustChangePassword: true,
         }).returning();
         const competition = await this.db.query.competitions.findFirst({
             where: (0, drizzle_orm_1.eq)(schema.competitions.isDefault, true),
@@ -233,6 +234,17 @@ let AuthService = class AuthService {
             user: this.sanitizeUser(user),
             ...tokens,
         };
+    }
+    async changePassword(userId, dto) {
+        const passwordHash = await bcrypt.hash(dto.password, 10);
+        await this.db.update(schema.users)
+            .set({
+            passwordHash,
+            mustChangePassword: false,
+            updatedAt: new Date(),
+        })
+            .where((0, drizzle_orm_1.eq)(schema.users.id, userId));
+        return { success: true, message: 'Password changed successfully' };
     }
     async refreshToken(dto) {
         try {

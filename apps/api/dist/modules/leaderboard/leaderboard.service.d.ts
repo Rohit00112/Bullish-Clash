@@ -27,20 +27,23 @@ export declare class LeaderboardService {
     getLeaderboard(options?: {
         limit?: number;
         offset?: number;
+        isAdmin?: boolean;
     }): Promise<{
         entries: LeaderboardEntry[];
         totalParticipants: number;
         updatedAt: Date;
+        isHidden?: boolean;
     }>;
     calculateLeaderboard(competitionId: string): Promise<{
         entries: LeaderboardEntry[];
         totalParticipants: number;
         updatedAt: Date;
     }>;
-    getUserRank(userId: string): Promise<{
+    getUserRank(userId: string, isAdmin?: boolean): Promise<{
         rank: number;
         totalParticipants: number;
         entry: LeaderboardEntry | null;
+        isHidden?: boolean;
     }>;
     invalidateCache(competitionId?: string): Promise<void>;
     exportLeaderboard(): Promise<string>;

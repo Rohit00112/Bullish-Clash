@@ -45,7 +45,7 @@ let TradingService = class TradingService {
             throw new common_1.BadRequestException('No active competition');
         }
         if (competition.status !== 'active') {
-            throw new common_1.BadRequestException('Competition is not active. Trading is disabled.');
+            throw new common_1.BadRequestException(`Competition is not active (Status: ${competition.status}). Trading is disabled.`);
         }
         const now = new Date();
         if (now < new Date(competition.startTime) || now > new Date(competition.endTime)) {
@@ -64,6 +64,11 @@ let TradingService = class TradingService {
         });
         if (!portfolio) {
             throw new common_1.BadRequestException('Portfolio not found. Please join the competition first.');
+        }
+        if (dto.side === 'buy') {
+            const existingHolding = await this.db.query.holdings.findFirst({
+                where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema.holdings.userId, userId), (0, drizzle_orm_1.eq)(schema.holdings.competitionId, competition.id), (0, drizzle_orm_1.eq)(schema.holdings.symbolId, dto.symbolId)),
+            });
         }
         if (competition.maxDailyTrades) {
             const todayStart = new Date();
@@ -111,6 +116,20 @@ let TradingService = class TradingService {
                 const maxPositionValue = (parseFloat(competition.maxPositionSize) / 100) * initialCapital;
                 if (newValue > maxPositionValue) {
                     throw new common_1.BadRequestException(`Position would exceed maximum allowed (${competition.maxPositionSize}% = रू${maxPositionValue.toLocaleString()})`);
+                }
+            }
+            const symbol = await this.db.query.symbols.findFirst({
+                where: (0, drizzle_orm_1.eq)(schema.symbols.id, dto.symbolId),
+            });
+            if (symbol?.listedShares) {
+                const totalHeldResult = await this.db
+                    .select({ total: (0, drizzle_orm_1.sql) `COALESCE(SUM(quantity), 0)` })
+                    .from(schema.holdings)
+                    .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema.holdings.symbolId, dto.symbolId), (0, drizzle_orm_1.eq)(schema.holdings.competitionId, competition.id)));
+                const currentlyHeld = Number(totalHeldResult[0]?.total) || 0;
+                const availableInMarket = symbol.listedShares - currentlyHeld;
+                if (dto.quantity > availableInMarket) {
+                    throw new common_1.BadRequestException(`Insufficient shares available in market. Requested: ${dto.quantity}, Available: ${availableInMarket} of ${symbol.listedShares.toLocaleString()} total`);
                 }
             }
             if (orderType === 'limit') {

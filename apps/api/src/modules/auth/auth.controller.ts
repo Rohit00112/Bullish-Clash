@@ -5,8 +5,8 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto, AuthResponseDto, RefreshTokenDto } from './auth.dto';
-import { JwtAuthGuard, RolesGuard, Roles } from './auth.guards';
+import { LoginDto, RegisterDto, AuthResponseDto, RefreshTokenDto, ChangePasswordDto } from './auth.dto';
+import { JwtAuthGuard, RolesGuard, Roles, CurrentUser } from './auth.guards';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -29,6 +29,18 @@ export class AuthController {
     @ApiResponse({ status: 401, description: 'Invalid refresh token' })
     async refreshToken(@Body() dto: RefreshTokenDto): Promise<AuthResponseDto> {
         return this.authService.refreshToken(dto);
+    }
+
+    @Post('change-password')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Change password' })
+    @ApiResponse({ status: 200, description: 'Password changed successfully' })
+    async changePassword(
+        @CurrentUser('id') userId: string,
+        @Body() dto: ChangePasswordDto,
+    ) {
+        return this.authService.changePassword(userId, dto);
     }
 
     @Post('create-user')

@@ -21,4 +21,6 @@ __exportStar(require("./trading"), exports);
 __exportStar(require("./events"), exports);
 __exportStar(require("./watchlist"), exports);
 __exportStar(require("./achievements"), exports);
+__exportStar(require("./bids"), exports);
+__exportStar(require("./remarks"), exports);
 //# sourceMappingURL=index.js.map

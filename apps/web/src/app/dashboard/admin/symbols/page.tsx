@@ -14,7 +14,7 @@ import {
     Building2,
 } from 'lucide-react';
 import { symbolsApi } from '@/lib/api';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatNumber } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 interface Symbol {
@@ -24,6 +24,7 @@ interface Symbol {
     sector: string;
     basePrice: number;
     currentPrice: number;
+    listedShares?: number;
     isActive: boolean;
     createdAt: string;
 }
@@ -55,6 +56,7 @@ export default function AdminSymbolsPage() {
     const [companyName, setCompanyName] = useState('');
     const [sector, setSector] = useState('');
     const [basePrice, setBasePrice] = useState('');
+    const [listedShares, setListedShares] = useState('');
 
     // Fetch symbols
     const { data: symbols, isLoading } = useQuery({
@@ -67,7 +69,7 @@ export default function AdminSymbolsPage() {
 
     // Create symbol mutation
     const createSymbolMutation = useMutation({
-        mutationFn: async (data: { symbol: string; companyName: string; sector: string; basePrice: number }) => {
+        mutationFn: async (data: { symbol: string; companyName: string; sector: string; basePrice: number; listedShares: number }) => {
             const res = await symbolsApi.create(data);
             return res.data;
         },
@@ -136,6 +138,7 @@ export default function AdminSymbolsPage() {
         setCompanyName('');
         setSector('');
         setBasePrice('');
+        setListedShares('10000');
         setIsModalOpen(true);
     };
 
@@ -146,6 +149,7 @@ export default function AdminSymbolsPage() {
         setCompanyName(symbol.companyName);
         setSector(symbol.sector);
         setBasePrice(symbol.basePrice.toString());
+        setListedShares(symbol.listedShares?.toString() || '');
         setIsModalOpen(true);
     };
 
@@ -157,7 +161,7 @@ export default function AdminSymbolsPage() {
 
     // Handle form submit
     const handleSubmit = () => {
-        if (!symbolCode || !companyName || !sector || !basePrice) {
+        if (!symbolCode || !companyName || !sector || !basePrice || !listedShares) {
             toast({ title: 'Please fill in all fields', variant: 'destructive' });
             return;
         }
@@ -170,6 +174,7 @@ export default function AdminSymbolsPage() {
                     companyName,
                     sector,
                     basePrice: parseFloat(basePrice),
+                    listedShares: parseInt(listedShares),
                 },
             });
         } else {
@@ -178,6 +183,7 @@ export default function AdminSymbolsPage() {
                 companyName,
                 sector,
                 basePrice: parseFloat(basePrice),
+                listedShares: parseInt(listedShares),
             });
         }
     };
@@ -269,6 +275,7 @@ export default function AdminSymbolsPage() {
                                         <th className="text-left py-2 px-4">Ticker</th>
                                         <th className="text-left py-2 px-4">Name</th>
                                         <th className="text-right py-2 px-4">Base Price</th>
+                                        <th className="text-right py-2 px-4">Listed Shares</th>
                                         <th className="text-right py-2 px-4">Current Price</th>
                                         <th className="text-center py-2 px-4">Status</th>
                                         <th className="text-right py-2 px-4">Actions</th>
@@ -284,6 +291,9 @@ export default function AdminSymbolsPage() {
                                             <td className="py-3 px-4 text-muted-foreground">{symbol.companyName}</td>
                                             <td className="py-3 px-4 text-right font-mono">
                                                 {formatCurrency(symbol.basePrice)}
+                                            </td>
+                                            <td className="py-3 px-4 text-right font-mono">
+                                                {formatNumber(symbol.listedShares || 0)}
                                             </td>
                                             <td className="py-3 px-4 text-right font-mono">
                                                 {formatCurrency(symbol.currentPrice)}
@@ -403,6 +413,18 @@ export default function AdminSymbolsPage() {
                                         className="input w-full"
                                         min="0"
                                         step="0.01"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="label">Total Volume (Listed Shares) *</label>
+                                    <input
+                                        type="number"
+                                        value={listedShares}
+                                        onChange={(e) => setListedShares(e.target.value)}
+                                        placeholder="e.g., 10000"
+                                        className="input w-full"
+                                        min="1"
                                     />
                                 </div>
 
