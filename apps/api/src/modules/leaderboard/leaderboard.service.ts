@@ -74,6 +74,7 @@ export class LeaderboardService {
                 entries: data.entries.slice(offset, offset + limit),
                 totalParticipants: data.totalParticipants,
                 updatedAt: new Date(data.updatedAt),
+                isHidden: competition.isLeaderboardHidden, // Expose status to admins even from cache
             };
         }
 
@@ -87,6 +88,7 @@ export class LeaderboardService {
             entries: leaderboard.entries.slice(offset, offset + limit),
             totalParticipants: leaderboard.totalParticipants,
             updatedAt: leaderboard.updatedAt,
+            isHidden: competition.isLeaderboardHidden, // Expose status to admins
         };
     }
 

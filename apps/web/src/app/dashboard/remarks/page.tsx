@@ -124,6 +124,10 @@ export default function RemarksPage() {
         if (type === 'risk_assessment') setRiskAssessment('');
     };
 
+    const getRemarkByType = (type: string, symbolId?: string) => {
+        return myRemarks?.find((r: any) => r.type === type && (symbolId ? r.symbolId === symbolId : true));
+    };
+
     if (competitionLoading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>;
 
     if (competition?.status !== 'remarks') {
@@ -218,37 +222,57 @@ export default function RemarksPage() {
 
                                     {selectedTrade?.id === trade.id && (
                                         <div className="mt-3 mb-4 pl-4 border-l-2 border-primary/20 ml-4 animate-in slide-in-from-top-2 fade-in duration-300">
-                                            <form onSubmit={handleTradeJustification} className="bg-secondary/10 rounded-r-xl rounded-bl-xl p-5 border border-white/5 relative">
-                                                <h4 className="text-sm font-medium text-primary mb-3 flex items-center gap-2">
-                                                    <MessageSquare className="h-4 w-4" />
-                                                    Why did you take this {trade.side.toUpperCase()} position?
-                                                </h4>
-                                                <textarea
-                                                    className="textarea w-full h-32 bg-background/50 border-white/20 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 resize-none text-base p-4 rounded-lg transition-all shadow-sm"
-                                                    placeholder="Discuss your analysis, market signals, or strategy..."
-                                                    value={justification}
-                                                    onChange={(e) => setJustification(e.target.value)}
-                                                    required
-                                                    autoFocus
-                                                />
-                                                <div className="flex justify-end mt-3 gap-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setSelectedTrade(null)}
-                                                        className="btn-ghost text-xs"
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                    <button
-                                                        type="submit"
-                                                        className="btn-primary py-1.5 px-4 text-sm shadow-lg shadow-primary/20"
-                                                        disabled={createRemarkMutation.isPending}
-                                                    >
-                                                        {createRemarkMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : null}
-                                                        Submit Justification
-                                                    </button>
+                                            {getRemarkByType('trade_justification', trade.symbolId) ? (
+                                                <div className="bg-secondary/10 rounded-r-xl rounded-bl-xl p-5 border border-white/5">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <h4 className="text-sm font-medium text-green-500 flex items-center gap-2">
+                                                            <CheckCircle className="h-4 w-4" />
+                                                            Justification Submitted
+                                                        </h4>
+                                                        <button
+                                                            onClick={() => startEditing(getRemarkByType('trade_justification', trade.symbolId))}
+                                                            className="text-primary text-xs flex items-center gap-1 hover:underline"
+                                                        >
+                                                            <Edit2 className="h-3 w-3" /> Edit Current
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground italic">
+                                                        "{getRemarkByType('trade_justification', trade.symbolId).content}"
+                                                    </p>
                                                 </div>
-                                            </form>
+                                            ) : (
+                                                <form onSubmit={handleTradeJustification} className="bg-secondary/10 rounded-r-xl rounded-bl-xl p-5 border border-white/5 relative">
+                                                    <h4 className="text-sm font-medium text-primary mb-3 flex items-center gap-2">
+                                                        <MessageSquare className="h-4 w-4" />
+                                                        Why did you take this {trade.side.toUpperCase()} position?
+                                                    </h4>
+                                                    <textarea
+                                                        className="textarea w-full h-32 bg-background/50 border-white/20 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 resize-none text-base p-4 rounded-lg transition-all shadow-sm"
+                                                        placeholder="Discuss your analysis, market signals, or strategy..."
+                                                        value={justification}
+                                                        onChange={(e) => setJustification(e.target.value)}
+                                                        required
+                                                        autoFocus
+                                                    />
+                                                    <div className="flex justify-end mt-3 gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setSelectedTrade(null)}
+                                                            className="btn-ghost text-xs"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                        <button
+                                                            type="submit"
+                                                            className="btn-primary py-1.5 px-4 text-sm shadow-lg shadow-primary/20"
+                                                            disabled={createRemarkMutation.isPending}
+                                                        >
+                                                            {createRemarkMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : null}
+                                                            Submit Justification
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -378,39 +402,77 @@ export default function RemarksPage() {
                             </div>
 
                             <div className="space-y-3">
-                                <label className="text-sm font-medium">Trading Strategy Overview</label>
-                                <textarea
-                                    className="textarea w-full h-32 bg-secondary/10 border-white/10 p-4 rounded-lg"
-                                    placeholder="Describe your overall strategy..."
-                                    value={strategy}
-                                    onChange={(e) => setStrategy(e.target.value)}
-                                />
-                                <button
-                                    onClick={() => handleGeneralRemark('strategy', strategy)}
-                                    className="btn-primary w-full"
-                                    disabled={!strategy || createRemarkMutation.isPending}
-                                >
-                                    Submit Strategy
-                                </button>
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-medium">Trading Strategy Overview</label>
+                                    {getRemarkByType('strategy') && (
+                                        <span className="text-[10px] bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full border border-green-500/20 font-bold uppercase">Submitted</span>
+                                    )}
+                                </div>
+                                {getRemarkByType('strategy') ? (
+                                    <div className="bg-secondary/10 p-4 rounded-lg border border-white/5 space-y-2">
+                                        <p className="text-sm text-muted-foreground italic">"{getRemarkByType('strategy').content}"</p>
+                                        <button
+                                            onClick={() => startEditing(getRemarkByType('strategy'))}
+                                            className="text-primary text-xs flex items-center gap-1 hover:underline"
+                                        >
+                                            <Edit2 className="h-3 w-3" /> Edit Strategy
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <textarea
+                                            className="textarea w-full h-32 bg-secondary/10 border-white/10 p-4 rounded-lg"
+                                            placeholder="Describe your overall strategy..."
+                                            value={strategy}
+                                            onChange={(e) => setStrategy(e.target.value)}
+                                        />
+                                        <button
+                                            onClick={() => handleGeneralRemark('strategy', strategy)}
+                                            className="btn-primary w-full"
+                                            disabled={!strategy || createRemarkMutation.isPending}
+                                        >
+                                            Submit Strategy
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
 
                         <div className="space-y-6">
                             <div className="space-y-3">
-                                <label className="text-sm font-medium">Risk Assessment</label>
-                                <textarea
-                                    className="textarea w-full h-32 bg-secondary/10 border-white/10 p-4 rounded-lg"
-                                    placeholder="How did you manage risks?"
-                                    value={riskAssessment}
-                                    onChange={(e) => setRiskAssessment(e.target.value)}
-                                />
-                                <button
-                                    onClick={() => handleGeneralRemark('risk_assessment', riskAssessment)}
-                                    className="btn-secondary w-full"
-                                    disabled={!riskAssessment || createRemarkMutation.isPending}
-                                >
-                                    Submit Risk Assessment
-                                </button>
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-medium">Risk Assessment</label>
+                                    {getRemarkByType('risk_assessment') && (
+                                        <span className="text-[10px] bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full border border-green-500/20 font-bold uppercase">Submitted</span>
+                                    )}
+                                </div>
+                                {getRemarkByType('risk_assessment') ? (
+                                    <div className="bg-secondary/10 p-4 rounded-lg border border-white/5 space-y-2">
+                                        <p className="text-sm text-muted-foreground italic">"{getRemarkByType('risk_assessment').content}"</p>
+                                        <button
+                                            onClick={() => startEditing(getRemarkByType('risk_assessment'))}
+                                            className="text-primary text-xs flex items-center gap-1 hover:underline"
+                                        >
+                                            <Edit2 className="h-3 w-3" /> Edit Risk Assessment
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <textarea
+                                            className="textarea w-full h-32 bg-secondary/10 border-white/10 p-4 rounded-lg"
+                                            placeholder="How did you manage risks?"
+                                            value={riskAssessment}
+                                            onChange={(e) => setRiskAssessment(e.target.value)}
+                                        />
+                                        <button
+                                            onClick={() => handleGeneralRemark('risk_assessment', riskAssessment)}
+                                            className="btn-secondary w-full"
+                                            disabled={!riskAssessment || createRemarkMutation.isPending}
+                                        >
+                                            Submit Risk Assessment
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>

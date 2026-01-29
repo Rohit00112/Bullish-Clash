@@ -44,7 +44,28 @@ export class RemarksService {
             if (!symbol) throw new NotFoundException('Symbol not found');
         }
 
-        // 3. Create Remark
+        // 3. Check for existing remark of the same type for this user/competition
+        // For trade_justification, we check symbolId too.
+        // For others, just type.
+        const existingWhere = [
+            eq(schema.remarks.userId, userId),
+            eq(schema.remarks.competitionId, competition.id),
+            eq(schema.remarks.type, dto.type)
+        ];
+
+        if (dto.symbolId) {
+            existingWhere.push(eq(schema.remarks.symbolId, dto.symbolId));
+        }
+
+        const existingRemark = await this.db.query.remarks.findFirst({
+            where: and(...existingWhere),
+        });
+
+        if (existingRemark) {
+            throw new BadRequestException(`You have already submitted a ${dto.type.replace('_', ' ')} for this context. Please edit your existing remark instead.`);
+        }
+
+        // 4. Create Remark
         const [remark] = await this.db.insert(schema.remarks).values({
             userId,
             competitionId: competition.id,

@@ -40,6 +40,20 @@ let RemarksService = class RemarksService {
             if (!symbol)
                 throw new common_1.NotFoundException('Symbol not found');
         }
+        const existingWhere = [
+            (0, drizzle_orm_1.eq)(schema.remarks.userId, userId),
+            (0, drizzle_orm_1.eq)(schema.remarks.competitionId, competition.id),
+            (0, drizzle_orm_1.eq)(schema.remarks.type, dto.type)
+        ];
+        if (dto.symbolId) {
+            existingWhere.push((0, drizzle_orm_1.eq)(schema.remarks.symbolId, dto.symbolId));
+        }
+        const existingRemark = await this.db.query.remarks.findFirst({
+            where: (0, drizzle_orm_1.and)(...existingWhere),
+        });
+        if (existingRemark) {
+            throw new common_1.BadRequestException(`You have already submitted a ${dto.type.replace('_', ' ')} for this context. Please edit your existing remark instead.`);
+        }
         const [remark] = await this.db.insert(schema.remarks).values({
             userId,
             competitionId: competition.id,

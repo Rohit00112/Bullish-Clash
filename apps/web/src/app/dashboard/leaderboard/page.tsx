@@ -87,7 +87,8 @@ export default function LeaderboardPage() {
         );
     };
 
-    if (leaderboardData?.isHidden) {
+    // Show suspense mode only if hidden AND no entries (regular user view)
+    if (leaderboardData?.isHidden && entries.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 space-y-6 animate-in fade-in zoom-in duration-500">
                 <div className="relative">
@@ -146,6 +147,23 @@ export default function LeaderboardPage() {
                     </div>
                 )}
             </div>
+
+            {/* Admin View Warning */}
+            {leaderboardData?.isHidden && entries.length > 0 && (
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                    <div className="bg-yellow-500/20 p-2 rounded-full">
+                        <EyeOff className="h-5 w-5 text-yellow-500" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-yellow-500 flex items-center gap-2">
+                            Admin View: Suspense Mode Active
+                        </h3>
+                        <p className="text-sm text-muted-foreground text-yellow-500/80">
+                            The leaderboard is currently <strong>hidden</strong> from participants. You can see this because you are an admin.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Top 3 Podium */}
             {top3.length >= 3 && (

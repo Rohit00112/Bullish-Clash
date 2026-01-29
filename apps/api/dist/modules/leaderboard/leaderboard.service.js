@@ -55,6 +55,7 @@ let LeaderboardService = class LeaderboardService {
                 entries: data.entries.slice(offset, offset + limit),
                 totalParticipants: data.totalParticipants,
                 updatedAt: new Date(data.updatedAt),
+                isHidden: competition.isLeaderboardHidden,
             };
         }
         const leaderboard = await this.calculateLeaderboard(competition.id);
@@ -63,6 +64,7 @@ let LeaderboardService = class LeaderboardService {
             entries: leaderboard.entries.slice(offset, offset + limit),
             totalParticipants: leaderboard.totalParticipants,
             updatedAt: leaderboard.updatedAt,
+            isHidden: competition.isLeaderboardHidden,
         };
     }
     async calculateLeaderboard(competitionId) {

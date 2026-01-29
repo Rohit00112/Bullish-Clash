@@ -1,8 +1,7 @@
 {
   "/dashboard/trade/page": "app/dashboard/trade/page.js",
   "/dashboard/leaderboard/page": "app/dashboard/leaderboard/page.js",
-  "/dashboard/remarks/page": "app/dashboard/remarks/page.js",
   "/dashboard/admin/page": "app/dashboard/admin/page.js",
-  "/dashboard/admin/remarks/page": "app/dashboard/admin/remarks/page.js",
-  "/dashboard/admin/users/page": "app/dashboard/admin/users/page.js"
+  "/dashboard/admin/events/page": "app/dashboard/admin/events/page.js",
+  "/dashboard/admin/settings/page": "app/dashboard/admin/settings/page.js"
 }

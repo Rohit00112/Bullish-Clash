@@ -40,6 +40,8 @@ let LeaderboardController = class LeaderboardController {
 exports.LeaderboardController = LeaderboardController;
 __decorate([
     (0, common_1.Get)(),
+    (0, common_1.UseGuards)(auth_guards_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get competition leaderboard' }),
     (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number, description: 'Number of entries (default: 100)' }),
     (0, swagger_1.ApiQuery)({ name: 'offset', required: false, type: Number, description: 'Offset for pagination' }),

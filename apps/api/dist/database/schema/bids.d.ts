@@ -92,7 +92,7 @@ export declare const bids: import("drizzle-orm/pg-core").PgTableWithColumns<{
             tableName: "bids";
             dataType: "string";
             columnType: "PgEnumColumn";
-            data: "pending" | "accepted" | "getting_ready" | "processed" | "rejected";
+            data: "pending" | "rejected" | "accepted" | "getting_ready" | "processed";
             driverParam: string;
             notNull: true;
             hasDefault: true;

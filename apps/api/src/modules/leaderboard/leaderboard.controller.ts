@@ -14,6 +14,8 @@ export class LeaderboardController {
     constructor(private readonly leaderboardService: LeaderboardService) { }
 
     @Get()
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Get competition leaderboard' })
     @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of entries (default: 100)' })
     @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Offset for pagination' })
