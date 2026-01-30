@@ -42,6 +42,7 @@ services:
       dockerfile: apps/api/Dockerfile
     container_name: bullish-clash-api
     restart: always
+    command: sh -c "pnpm db:push && node apps/api/dist/main.js"
     environment:
       NODE_ENV: production
       PORT: 4000
