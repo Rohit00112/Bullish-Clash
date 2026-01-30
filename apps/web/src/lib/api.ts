@@ -1,7 +1,10 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const isServer = typeof window === 'undefined';
+const API_URL = isServer
+    ? (process.env.INTERNAL_API_URL || 'http://api:4000/api')
+    : (process.env.NEXT_PUBLIC_API_URL || '/api');
 
 export const api = axios.create({
     baseURL: API_URL,

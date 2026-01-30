@@ -4,7 +4,8 @@ import { useCallback, useRef, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { usePriceStore } from '@/stores/price-store';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:4000';
+const isBrowser = typeof window !== 'undefined';
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || (isBrowser ? window.location.origin : 'http://api:4000');
 
 let socket: Socket | null = null;
 
