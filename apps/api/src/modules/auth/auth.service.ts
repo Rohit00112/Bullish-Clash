@@ -265,21 +265,29 @@ export class AuthService {
     }
 
     async login(dto: LoginDto): Promise<AuthResponseDto> {
+        console.log(`[AUTH] Login attempt for email: ${dto.email}`);
+
         // Find user by email
         const user = await this.db.query.users.findFirst({
             where: eq(schema.users.email, dto.email.toLowerCase()),
         });
 
         if (!user) {
+            console.log(`[AUTH] User not found for email: ${dto.email}`);
             throw new UnauthorizedException('Invalid credentials');
         }
+
+        console.log(`[AUTH] User found: ${user.email}, comparing passwords...`);
 
         // Verify password
         const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
 
         if (!isPasswordValid) {
+            console.log(`[AUTH] Password mismatch for user: ${user.email}`);
             throw new UnauthorizedException('Invalid credentials');
         }
+
+        console.log(`[AUTH] Login successful for user: ${user.email}`);
 
         if (!user.isActive) {
             throw new UnauthorizedException('Account is deactivated');

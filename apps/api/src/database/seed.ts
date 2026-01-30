@@ -139,6 +139,7 @@ async function seed() {
             role: 'admin',
             isActive: true,
         });
+        console.log('✅ Admin user created successfully');
 
 
 
@@ -160,6 +161,7 @@ async function seed() {
                 isActive: true,
             });
         }
+        console.log(`✅ ${nepseSymbols.length} symbols created successfully`);
 
         // 4. Initialize latest prices
         console.log('Initializing latest prices...');
@@ -178,6 +180,7 @@ async function seed() {
                 changePercent: '0',
             });
         }
+        console.log('✅ Latest prices initialized successfully');
 
         // 5. Create default competition
         console.log('Creating default competition...');
@@ -199,6 +202,7 @@ async function seed() {
             endTime,
             isDefault: true,
         });
+        console.log('✅ Default competition created successfully');
 
 
 
