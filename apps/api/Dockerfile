@@ -39,6 +39,10 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/packages/shared/package.json ./packages/shared/
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 
+# Copy drizzle config and schema for migrations
+COPY --from=builder /app/apps/api/drizzle.config.ts ./apps/api/
+COPY --from=builder /app/apps/api/src/database ./apps/api/src/database
+
 # Install production dependencies only
 # Install production dependencies
 RUN pnpm install --frozen-lockfile --prod
