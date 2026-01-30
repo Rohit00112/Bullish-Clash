@@ -40,7 +40,11 @@ COPY --from=builder /app/packages/shared/package.json ./packages/shared/
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 
 # Install production dependencies only
+# Install production dependencies
 RUN pnpm install --frozen-lockfile --prod
+
+# Install drizzle-kit explicitly for migrations
+RUN pnpm add -D drizzle-kit
 
 EXPOSE 4000
 
