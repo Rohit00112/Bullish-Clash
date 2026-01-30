@@ -761,12 +761,12 @@ export default function TradePage() {
                                         <div className="mt-2">
                                             <input
                                                 type="range"
-                                                min="-5"
-                                                max="5"
+                                                min="-2"
+                                                max="2"
                                                 step="0.5"
                                                 defaultValue="0"
                                                 onChange={(e) => {
-                                                    const percent = parseFloat(e.target.value) / 100;
+                                                    const percent = parseFloat(e.target.value) * 2.5 / 100;
                                                     setLimitPrice((selectedPrice.price * (1 + percent)).toFixed(2));
                                                 }}
                                                 className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
