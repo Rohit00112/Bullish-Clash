@@ -14,15 +14,13 @@ DO $$ BEGIN ALTER TYPE "competition_status" ADD VALUE 'bidding'; EXCEPTION WHEN 
 --> statement-breakpoint
 DO $$ BEGIN ALTER TYPE "competition_status" ADD VALUE 'remarks'; EXCEPTION WHEN duplicate_object THEN null; END $$;
 --> statement-breakpoint
-ALTER TABLE "trade_remarks" RENAME TO "remarks";
+DO $$ BEGIN ALTER TABLE "trade_remarks" RENAME TO "remarks"; EXCEPTION WHEN undefined_table THEN null; WHEN duplicate_table THEN null; END $$;
 --> statement-breakpoint
-ALTER TABLE "bids" RENAME COLUMN "bid_price" TO "price";
+DO $$ BEGIN ALTER TABLE "bids" RENAME COLUMN "bid_price" TO "price"; EXCEPTION WHEN undefined_column THEN null; END $$;
 --> statement-breakpoint
-ALTER TABLE "remarks"
-DROP CONSTRAINT "trade_remarks_competition_id_competitions_id_fk";
+DO $$ BEGIN ALTER TABLE "remarks" DROP CONSTRAINT "trade_remarks_competition_id_competitions_id_fk"; EXCEPTION WHEN undefined_object THEN null; END $$;
 --> statement-breakpoint
-ALTER TABLE "remarks"
-DROP CONSTRAINT "trade_remarks_user_id_users_id_fk";
+DO $$ BEGIN ALTER TABLE "remarks" DROP CONSTRAINT "trade_remarks_user_id_users_id_fk"; EXCEPTION WHEN undefined_object THEN null; END $$;
 --> statement-breakpoint
 DROP INDEX IF EXISTS "bids_symbol_id_idx";
 --> statement-breakpoint
@@ -34,25 +32,25 @@ DROP INDEX IF EXISTS "trade_remarks_user_id_idx";
 --> statement-breakpoint
 DROP INDEX IF EXISTS "trade_remarks_unique_idx";
 --> statement-breakpoint
-ALTER TABLE "bids" ALTER COLUMN "allocated_quantity" DROP NOT NULL;
+DO $$ BEGIN ALTER TABLE "bids" ALTER COLUMN "allocated_quantity" DROP NOT NULL; EXCEPTION WHEN undefined_column THEN null; END $$;
 --> statement-breakpoint
 ALTER TABLE "competitions"
-ADD COLUMN "is_leaderboard_hidden" boolean DEFAULT false NOT NULL;
+ADD COLUMN IF NOT EXISTS "is_leaderboard_hidden" boolean DEFAULT false NOT NULL;
 --> statement-breakpoint
 ALTER TABLE "users"
-ADD COLUMN "must_change_password" boolean DEFAULT false NOT NULL;
+ADD COLUMN IF NOT EXISTS "must_change_password" boolean DEFAULT false NOT NULL;
 --> statement-breakpoint
-ALTER TABLE "remarks" ADD COLUMN "symbol_id" uuid;
---> statement-breakpoint
-ALTER TABLE "remarks"
-ADD COLUMN "type" "remark_type" DEFAULT 'trade_justification' NOT NULL;
---> statement-breakpoint
-ALTER TABLE "remarks" ADD COLUMN "score" integer;
---> statement-breakpoint
-ALTER TABLE "remarks" ADD COLUMN "title" varchar(255);
+ALTER TABLE "remarks" ADD COLUMN IF NOT EXISTS "symbol_id" uuid;
 --> statement-breakpoint
 ALTER TABLE "remarks"
-ADD COLUMN "created_at" timestamp
+ADD COLUMN IF NOT EXISTS "type" "remark_type" DEFAULT 'trade_justification' NOT NULL;
+--> statement-breakpoint
+ALTER TABLE "remarks" ADD COLUMN IF NOT EXISTS "score" integer;
+--> statement-breakpoint
+ALTER TABLE "remarks" ADD COLUMN IF NOT EXISTS "title" varchar(255);
+--> statement-breakpoint
+ALTER TABLE "remarks"
+ADD COLUMN IF NOT EXISTS "created_at" timestamp
 with
     time zone DEFAULT now() NOT NULL;
 --> statement-breakpoint
