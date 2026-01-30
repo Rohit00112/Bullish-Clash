@@ -52,7 +52,8 @@ export class LeaderboardService {
         }
 
         // If leaderboard is hidden and user is not admin, return empty entries or minimal info
-        if (competition.isLeaderboardHidden && !options?.isAdmin) {
+        // if (competition.isLeaderboardHidden && !options?.isAdmin) {
+        if (false) { // Temporarily disabled
             return {
                 entries: [],
                 totalParticipants: 0, // We could return real count but entries empty
@@ -74,7 +75,7 @@ export class LeaderboardService {
                 entries: data.entries.slice(offset, offset + limit),
                 totalParticipants: data.totalParticipants,
                 updatedAt: new Date(data.updatedAt),
-                isHidden: competition.isLeaderboardHidden, // Expose status to admins even from cache
+                // isHidden: competition.isLeaderboardHidden, // Expose status to admins even from cache
             };
         }
 
@@ -88,7 +89,7 @@ export class LeaderboardService {
             entries: leaderboard.entries.slice(offset, offset + limit),
             totalParticipants: leaderboard.totalParticipants,
             updatedAt: leaderboard.updatedAt,
-            isHidden: competition.isLeaderboardHidden, // Expose status to admins
+            // isHidden: competition.isLeaderboardHidden, // Expose status to admins
         };
     }
 
@@ -232,7 +233,8 @@ export class LeaderboardService {
         isHidden?: boolean;
     }> {
         const competition = await this.competitionService.getActiveCompetition();
-        if (competition?.isLeaderboardHidden && !isAdmin) {
+        // if (competition?.isLeaderboardHidden && !isAdmin) {
+        if (false) { // Temporarily disabled
             return {
                 rank: 0,
                 totalParticipants: 0,

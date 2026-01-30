@@ -69,10 +69,10 @@ export class CreateCompetitionDto {
     @IsBoolean()
     isDefault?: boolean;
 
-    @ApiProperty({ required: false, default: false })
-    @IsOptional()
-    @IsBoolean()
-    isLeaderboardHidden?: boolean;
+    // @ApiProperty({ required: false, default: false })
+    // @IsOptional()
+    // @IsBoolean()
+    // isLeaderboardHidden?: boolean;
 }
 
 export class UpdateCompetitionDto {
@@ -146,8 +146,8 @@ export class UpdateCompetitionDto {
     @IsBoolean()
     isDefault?: boolean;
 
-    @ApiProperty({ required: false })
-    @IsOptional()
-    @IsBoolean()
-    isLeaderboardHidden?: boolean;
+    // @ApiProperty({ required: false })
+    // @IsOptional()
+    // @IsBoolean()
+    // isLeaderboardHidden?: boolean;
 }
