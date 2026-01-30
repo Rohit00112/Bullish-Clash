@@ -32,11 +32,18 @@ interface AuthState {
 }
 
 // Cookie options for secure storage
-const cookieOptions = {
-    expires: 7, // 7 days
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict' as const,
+const getCookieOptions = () => {
+    const isProd = process.env.NODE_ENV === 'production';
+    const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+
+    return {
+        expires: 7, // 7 days
+        secure: isProd && isHttps,
+        sameSite: 'lax' as const, // Changed from strict to lax for better compatibility during IP access
+    };
 };
+
+const cookieOptions = getCookieOptions();
 
 export const useAuthStore = create<AuthState>((set, get) => ({
     user: null,
