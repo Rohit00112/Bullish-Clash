@@ -16,6 +16,12 @@ async function bootstrap() {
         credentials: true,
     });
 
+    // Global request logger
+    app.use((req: any, res: any, next: () => void) => {
+        console.log(`[REQUEST] ${req.method} ${req.url}`);
+        next();
+    });
+
     // Global validation pipe
     app.useGlobalPipes(
         new ValidationPipe({
