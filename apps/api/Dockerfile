@@ -43,8 +43,8 @@ COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 # Install production dependencies
 RUN pnpm install --frozen-lockfile --prod
 
-# Install drizzle-kit explicitly for migrations (to workspace root)
-RUN pnpm add -D drizzle-kit -w
+# Install drizzle-kit globally for migrations
+RUN npm install -g drizzle-kit
 
 EXPOSE 4000
 
