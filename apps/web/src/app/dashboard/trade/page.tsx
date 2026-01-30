@@ -772,14 +772,14 @@ export default function TradePage() {
                                                 className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
                                             />
                                             <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                                                <span>-5%</span>
+                                                <span>-2</span>
                                                 <button
                                                     onClick={() => setLimitPrice(selectedPrice.price.toFixed(2))}
                                                     className="text-primary hover:underline font-medium"
                                                 >
                                                     Current
                                                 </button>
-                                                <span>+5%</span>
+                                                <span>+2</span>
                                             </div>
                                         </div>
                                     )}
