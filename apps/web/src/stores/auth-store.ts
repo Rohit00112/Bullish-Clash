@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import Cookies from 'js-cookie';
-import { authApi, usersApi } from '@/lib/api';
+import { authApi, usersApi, api } from '@/lib/api';
 
 interface User {
     id: string;
@@ -47,6 +47,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     error: null,
 
     login: async (email: string, password: string) => {
+        console.log(`[AUTH] Client: Attempting login for ${email} via ${api.defaults.baseURL}`);
         set({ isLoading: true, error: null });
         try {
             const response = await authApi.login(email, password);

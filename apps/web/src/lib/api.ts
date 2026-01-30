@@ -6,6 +6,10 @@ const API_URL = isServer
     ? (process.env.INTERNAL_API_URL || 'http://api:4000/api')
     : (process.env.NEXT_PUBLIC_API_URL || '/api');
 
+if (!isServer) {
+    console.log('[API] Client-side API URL:', API_URL);
+}
+
 export const api = axios.create({
     baseURL: API_URL,
     headers: {
