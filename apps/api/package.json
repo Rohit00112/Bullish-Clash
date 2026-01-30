@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "Bullish Clash API - NestJS Backend",
     "scripts": {
-        "build": "nest build",
+        "build": "nest build && pnpm db:generate && tsc src/database/migrate.ts --outDir dist/database && tsc src/database/seed.ts --outDir dist/database",
         "start": "nest start",
         "dev": "nest start --watch",
         "start:debug": "nest start --debug --watch",
