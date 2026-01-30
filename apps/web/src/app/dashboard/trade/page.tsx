@@ -758,25 +758,29 @@ export default function TradePage() {
                                         className="input w-full"
                                     />
                                     {selectedPrice && (
-                                        <div className="flex gap-2 mt-1">
-                                            <button
-                                                onClick={() => setLimitPrice((selectedPrice.price * 0.98).toFixed(2))}
-                                                className="text-xs text-primary hover:underline"
-                                            >
-                                                -2%
-                                            </button>
-                                            <button
-                                                onClick={() => setLimitPrice(selectedPrice.price.toFixed(2))}
-                                                className="text-xs text-primary hover:underline"
-                                            >
-                                                Current
-                                            </button>
-                                            <button
-                                                onClick={() => setLimitPrice((selectedPrice.price * 1.02).toFixed(2))}
-                                                className="text-xs text-primary hover:underline"
-                                            >
-                                                +2%
-                                            </button>
+                                        <div className="mt-2">
+                                            <input
+                                                type="range"
+                                                min="-5"
+                                                max="5"
+                                                step="0.5"
+                                                defaultValue="0"
+                                                onChange={(e) => {
+                                                    const percent = parseFloat(e.target.value) / 100;
+                                                    setLimitPrice((selectedPrice.price * (1 + percent)).toFixed(2));
+                                                }}
+                                                className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+                                            />
+                                            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                                                <span>-5%</span>
+                                                <button
+                                                    onClick={() => setLimitPrice(selectedPrice.price.toFixed(2))}
+                                                    className="text-primary hover:underline font-medium"
+                                                >
+                                                    Current
+                                                </button>
+                                                <span>+5%</span>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -799,7 +803,7 @@ export default function TradePage() {
                             </div>
 
                             {/* Cash Available */}
-                            <p className="text-sm text-muted-foreground mb-4">
+                            <p className="text-base font-semibold text-foreground mb-4">
                                 Available: {formatCurrency(portfolio?.cash || 0)}
                             </p>
 
