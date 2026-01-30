@@ -122,28 +122,109 @@ export class BiddingService {
         return bidData;
     }
 
-    // Admin: Allocate Bids (Simple Logic: Full Allocation for now, or Random)
+    // Admin: Allocate Bids with PRICE PRIORITY
+    // Higher price bids get filled first until supply runs out
     async processBids(competitionId: string) {
-        //Logic:
-        // 1. Get all pending bids
-        // 2. Convert to positions (Holdings)
-        // 3. Mark bids as 'processed'
-        // 4. Refund if necessary (not implementing complex IPO matching yet)
-
+        // 1. Get all pending bids sorted by price (highest first), then by time (earliest first)
         const bids = await this.db.query.bids.findMany({
             where: and(
                 eq(schema.bids.competitionId, competitionId),
                 eq(schema.bids.status, 'pending'),
             ),
+            orderBy: [desc(schema.bids.price), schema.bids.createdAt],
         });
 
         if (bids.length === 0) {
-            return { message: 'No pending bids to process' };
+            return { message: 'No pending bids to process', allocated: 0, rejected: 0 };
         }
+
+        // 2. Group bids by symbol and track available supply
+        const symbolSupply = new Map<string, number>();
+        const symbolIds = [...new Set(bids.map((b: any) => b.symbolId))];
+
+        for (const symbolId of symbolIds as string[]) {
+            const symbol = await this.db.query.symbols.findFirst({
+                where: eq(schema.symbols.id, symbolId),
+            });
+
+            // Get current holdings for this symbol in this competition
+            const holdings = await this.db.select({
+                totalQty: schema.holdings.quantity,
+            })
+                .from(schema.holdings)
+                .where(and(
+                    eq(schema.holdings.competitionId, competitionId),
+                    eq(schema.holdings.symbolId, symbolId),
+                ));
+
+            const heldQty = holdings.reduce((sum: number, h: any) => sum + h.totalQty, 0);
+            const availableQty = (symbol?.listedShares || 0) - heldQty;
+            symbolSupply.set(symbolId as string, Math.max(0, availableQty));
+        }
+
+        let allocatedCount = 0;
+        let rejectedCount = 0;
+        let partialCount = 0;
 
         await this.db.transaction(async (tx: any) => {
             for (const bid of bids) {
-                // Check if holding exists
+                const available = symbolSupply.get(bid.symbolId) || 0;
+
+                if (available <= 0) {
+                    // No shares available - REJECT bid and refund
+                    const refundAmount = Number(bid.price) * bid.quantity;
+
+                    // Refund cash to portfolio
+                    const portfolio = await tx.query.portfolios.findFirst({
+                        where: and(
+                            eq(schema.portfolios.userId, bid.userId),
+                            eq(schema.portfolios.competitionId, bid.competitionId),
+                        ),
+                    });
+
+                    if (portfolio) {
+                        await tx.update(schema.portfolios)
+                            .set({
+                                cash: (Number(portfolio.cash) + refundAmount).toString(),
+                                updatedAt: new Date(),
+                            })
+                            .where(eq(schema.portfolios.id, portfolio.id));
+
+                        // Create refund ledger entry
+                        await tx.insert(schema.ledgerEntries).values({
+                            userId: bid.userId,
+                            competitionId: bid.competitionId,
+                            type: 'bid_refund',
+                            amount: refundAmount.toString(),
+                            balanceAfter: (Number(portfolio.cash) + refundAmount).toString(),
+                            description: `Bid rejected - no shares available`,
+                        });
+                    }
+
+                    // Mark bid as rejected
+                    await tx.update(schema.bids)
+                        .set({
+                            status: 'rejected',
+                            allocatedQuantity: 0,
+                            updatedAt: new Date(),
+                        })
+                        .where(eq(schema.bids.id, bid.id));
+
+                    rejectedCount++;
+                    continue;
+                }
+
+                // Calculate allocation (full or partial)
+                const allocatedQty = Math.min(bid.quantity, available);
+                const isPartial = allocatedQty < bid.quantity;
+                const allocatedCost = Number(bid.price) * allocatedQty;
+                const refundQty = bid.quantity - allocatedQty;
+                const refundAmount = Number(bid.price) * refundQty;
+
+                // Update available supply
+                symbolSupply.set(bid.symbolId, available - allocatedQty);
+
+                // Create/Update holding
                 const existingHolding = await tx.query.holdings.findFirst({
                     where: and(
                         eq(schema.holdings.userId, bid.userId),
@@ -152,14 +233,11 @@ export class BiddingService {
                     ),
                 });
 
-                const totalCost = Number(bid.price) * bid.quantity;
-
                 if (existingHolding) {
-                    // Average Price Calculation
                     const currentQty = existingHolding.quantity;
                     const currentCost = Number(existingHolding.totalCost);
-                    const newQty = currentQty + bid.quantity;
-                    const newCost = currentCost + totalCost;
+                    const newQty = currentQty + allocatedQty;
+                    const newCost = currentCost + allocatedCost;
                     const newAvg = newCost / newQty;
 
                     await tx.update(schema.holdings)
@@ -175,17 +253,46 @@ export class BiddingService {
                         userId: bid.userId,
                         competitionId: bid.competitionId,
                         symbolId: bid.symbolId,
-                        quantity: bid.quantity,
+                        quantity: allocatedQty,
                         avgPrice: bid.price,
-                        totalCost: totalCost.toString(),
+                        totalCost: allocatedCost.toString(),
                     });
                 }
 
-                // Mark bid processed
+                // Refund partial amount if needed
+                if (isPartial && refundAmount > 0) {
+                    const portfolio = await tx.query.portfolios.findFirst({
+                        where: and(
+                            eq(schema.portfolios.userId, bid.userId),
+                            eq(schema.portfolios.competitionId, bid.competitionId),
+                        ),
+                    });
+
+                    if (portfolio) {
+                        await tx.update(schema.portfolios)
+                            .set({
+                                cash: (Number(portfolio.cash) + refundAmount).toString(),
+                                updatedAt: new Date(),
+                            })
+                            .where(eq(schema.portfolios.id, portfolio.id));
+
+                        await tx.insert(schema.ledgerEntries).values({
+                            userId: bid.userId,
+                            competitionId: bid.competitionId,
+                            type: 'bid_partial_refund',
+                            amount: refundAmount.toString(),
+                            balanceAfter: (Number(portfolio.cash) + refundAmount).toString(),
+                            description: `Partial allocation - ${allocatedQty}/${bid.quantity} shares filled`,
+                        });
+                    }
+                    partialCount++;
+                }
+
+                // Mark bid as processed
                 await tx.update(schema.bids)
                     .set({
                         status: 'processed',
-                        allocatedQuantity: bid.quantity, // Full allocation
+                        allocatedQuantity: allocatedQty,
                         updatedAt: new Date(),
                     })
                     .where(eq(schema.bids.id, bid.id));
@@ -195,16 +302,24 @@ export class BiddingService {
                     userId: bid.userId,
                     competitionId: bid.competitionId,
                     symbolId: bid.symbolId,
-                    side: 'buy', // Bidding is always a buy
-                    quantity: bid.quantity,
+                    side: 'buy',
+                    quantity: allocatedQty,
                     price: bid.price,
-                    total: totalCost.toString(),
-                    commission: '0', // Commission already handled by bidding if any, or 0 for IPO
+                    total: allocatedCost.toString(),
+                    commission: '0',
                     executedAt: new Date(),
                 });
+
+                allocatedCount++;
             }
         });
 
-        return { success: true, count: bids.length, message: 'Bids processed and allocated' };
+        return {
+            success: true,
+            message: `Bids processed: ${allocatedCount} allocated, ${partialCount} partial, ${rejectedCount} rejected`,
+            allocated: allocatedCount,
+            partial: partialCount,
+            rejected: rejectedCount,
+        };
     }
 }
