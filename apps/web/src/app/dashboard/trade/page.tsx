@@ -35,6 +35,7 @@ interface Symbol {
     sector: string;
     isActive: boolean;
     listedShares?: number;
+    availableShares?: number;
 }
 
 interface Position {
@@ -661,10 +662,10 @@ export default function TradePage() {
                                     </div>
                                 )}
 
-                                {selectedSymbol.listedShares && (
+                                {selectedSymbol.availableShares !== undefined && (
                                     <div className="mt-3 pt-3 border-t border-border">
                                         <p className="text-sm text-muted-foreground">
-                                            Market Supply: {formatNumber(selectedSymbol.listedShares)} shares
+                                            Available Status: {formatNumber(selectedSymbol.availableShares)} / {formatNumber(selectedSymbol.listedShares || 0)} shares
                                         </p>
                                     </div>
                                 )}

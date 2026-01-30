@@ -12,6 +12,7 @@ interface Symbol {
     sector: string;
     isActive: boolean;
     listedShares?: number;
+    availableShares?: number;
 }
 
 export function BiddingPanel() {
@@ -131,7 +132,7 @@ export function BiddingPanel() {
                                         <td className="p-3 text-muted-foreground">{symbol.companyName}</td>
                                         <td className="p-3 text-muted-foreground">{symbol.sector}</td>
                                         <td className="p-3 text-right font-mono">
-                                            {symbol.listedShares ? formatNumber(symbol.listedShares) : '-'}
+                                            {symbol.availableShares !== undefined ? formatNumber(symbol.availableShares) : symbol.listedShares ? formatNumber(symbol.listedShares) : '-'}
                                         </td>
                                         <td className="p-3 text-right">
                                             <button

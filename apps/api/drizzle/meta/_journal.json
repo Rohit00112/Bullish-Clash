@@ -36,6 +36,13 @@
       "when": 1769532504408,
       "tag": "0004_mature_shatterstar",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1769746168148,
+      "tag": "0005_cultured_mole_man",
+      "breakpoints": true
     }
   ]
 }

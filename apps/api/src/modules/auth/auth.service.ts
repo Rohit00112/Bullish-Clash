@@ -210,7 +210,7 @@ export class AuthService {
             phone: dto.phone,
             role: 'participant',
             isActive: true,
-            // mustChangePassword: true,
+            mustChangePassword: true,
         }).returning();
 
         // Get default competition
@@ -313,7 +313,7 @@ export class AuthService {
         await this.db.update(schema.users)
             .set({
                 passwordHash,
-                // mustChangePassword: false,
+                mustChangePassword: false,
                 updatedAt: new Date(),
             })
             .where(eq(schema.users.id, userId));

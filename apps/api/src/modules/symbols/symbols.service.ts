@@ -3,7 +3,7 @@
 // ============================================================
 
 import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
-import { eq, ilike, and, desc } from 'drizzle-orm';
+import { eq, ilike, and, desc, sql, not } from 'drizzle-orm';
 import { v4 as uuid } from 'uuid';
 import { DATABASE_CONNECTION } from '../../database/database.module';
 import * as schema from '../../database/schema';
@@ -14,6 +14,16 @@ export class SymbolsService {
     constructor(
         @Inject(DATABASE_CONNECTION) private readonly db: any,
     ) { }
+
+    private async getActiveCompetition() {
+        return await this.db.query.competitions.findFirst({
+            where: and(
+                not(eq(schema.competitions.status, 'draft')),
+                not(eq(schema.competitions.status, 'ended')),
+            ),
+            orderBy: [desc(schema.competitions.createdAt)],
+        });
+    }
 
     async findAll(options?: { sector?: string; search?: string; activeOnly?: boolean }) {
         let conditions: any[] = [];
@@ -39,14 +49,35 @@ export class SymbolsService {
         const latestPrices = await this.db.query.latestPrices.findMany();
         const priceMap = new Map(latestPrices.map((p: any) => [p.symbolId, p]));
 
-        // Add current price to each symbol
+        // Get active competition to calculate available shares
+        const activeCompetition = await this.getActiveCompetition();
+
+        // Get total holdings per symbol for the active competition
+        let holdingsGroupBySymbol = new Map<string, number>();
+        if (activeCompetition) {
+            const allHoldings = await this.db.select({
+                symbolId: schema.holdings.symbolId,
+                totalQuantity: sql<number>`SUM(${schema.holdings.quantity})`
+            })
+                .from(schema.holdings)
+                .where(eq(schema.holdings.competitionId, activeCompetition.id))
+                .groupBy(schema.holdings.symbolId);
+
+            holdingsGroupBySymbol = new Map(allHoldings.map((h: any) => [h.symbolId, Number(h.totalQuantity)]));
+        }
+
+        // Add current price and availability to each symbol
         const symbolsWithPrices = symbols.map((s: any) => {
             const latestPrice = priceMap.get(s.id) as any;
+            const heldQuantity = holdingsGroupBySymbol.get(s.id) || 0;
+            const availableShares = s.listedShares ? Math.max(0, s.listedShares - heldQuantity) : 0;
+
             return {
                 ...s,
                 currentPrice: latestPrice ? parseFloat(latestPrice.price) : parseFloat(s.basePrice),
                 change: latestPrice ? parseFloat(latestPrice.change) : 0,
                 changePercent: latestPrice ? parseFloat(latestPrice.changePercent) : 0,
+                availableShares: availableShares,
             };
         });
 
@@ -72,7 +103,35 @@ export class SymbolsService {
             throw new NotFoundException('Symbol not found');
         }
 
-        return symbol;
+        // Get latest price
+        const latestPrice = await this.db.query.latestPrices.findFirst({
+            where: eq(schema.latestPrices.symbolId, id),
+        });
+
+        // Get availability
+        const activeCompetition = await this.getActiveCompetition();
+        let heldQuantity = 0;
+        if (activeCompetition) {
+            const holdings = await this.db.select({
+                totalQuantity: sql<number>`SUM(${schema.holdings.quantity})`
+            })
+                .from(schema.holdings)
+                .where(and(
+                    eq(schema.holdings.competitionId, activeCompetition.id),
+                    eq(schema.holdings.symbolId, id)
+                ))
+                .groupBy(schema.holdings.symbolId);
+
+            heldQuantity = holdings[0]?.totalQuantity ? Number(holdings[0].totalQuantity) : 0;
+        }
+
+        return {
+            ...symbol,
+            currentPrice: latestPrice ? parseFloat(latestPrice.price) : parseFloat(symbol.basePrice),
+            change: latestPrice ? parseFloat(latestPrice.change) : 0,
+            changePercent: latestPrice ? parseFloat(latestPrice.changePercent) : 0,
+            availableShares: symbol.listedShares ? Math.max(0, symbol.listedShares - heldQuantity) : 0,
+        };
     }
 
     async findBySymbol(symbolCode: string) {
@@ -80,7 +139,8 @@ export class SymbolsService {
             where: eq(schema.symbols.symbol, symbolCode.toUpperCase()),
         });
 
-        return symbol;
+        if (!symbol) return null;
+        return this.findById(symbol.id);
     }
 
     async create(dto: CreateSymbolDto) {

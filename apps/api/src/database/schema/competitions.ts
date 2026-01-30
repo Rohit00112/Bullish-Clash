@@ -53,7 +53,7 @@ export const competitions = pgTable('competitions', {
 
     // Metadata
     isDefault: boolean('is_default').notNull().default(false),
-    // isLeaderboardHidden: boolean('is_leaderboard_hidden').notNull().default(false),
+    isLeaderboardHidden: boolean('is_leaderboard_hidden').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

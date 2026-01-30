@@ -82,7 +82,6 @@ export const orders = pgTable('orders', {
 export const trades = pgTable('trades', {
     id: uuid('id').defaultRandom().primaryKey(),
     orderId: uuid('order_id')
-        .notNull()
         .references(() => orders.id, { onDelete: 'cascade' }),
     userId: uuid('user_id')
         .notNull()

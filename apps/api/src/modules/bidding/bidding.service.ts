@@ -189,6 +189,19 @@ export class BiddingService {
                         updatedAt: new Date(),
                     })
                     .where(eq(schema.bids.id, bid.id));
+
+                // Record as a Trade
+                await tx.insert(schema.trades).values({
+                    userId: bid.userId,
+                    competitionId: bid.competitionId,
+                    symbolId: bid.symbolId,
+                    side: 'buy', // Bidding is always a buy
+                    quantity: bid.quantity,
+                    price: bid.price,
+                    total: totalCost.toString(),
+                    commission: '0', // Commission already handled by bidding if any, or 0 for IPO
+                    executedAt: new Date(),
+                });
             }
         });
 
