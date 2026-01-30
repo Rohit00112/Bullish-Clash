@@ -96,3 +96,5 @@ ALTER TABLE "competitions" DROP COLUMN IF EXISTS "cycle_duration";
 ALTER TABLE "symbols" DROP COLUMN IF EXISTS "total_quantity";
 --> statement-breakpoint
 ALTER TABLE "remarks" DROP COLUMN IF EXISTS "submitted_at";
+--> statement-breakpoint
+DO $$ BEGIN ALTER TABLE "trades" ALTER COLUMN "order_id" DROP NOT NULL; EXCEPTION WHEN undefined_column THEN null; END $$;
