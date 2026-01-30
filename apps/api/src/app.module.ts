@@ -24,6 +24,7 @@ import { WatchlistModule } from './modules/watchlist/watchlist.module';
 import { AchievementsModule } from './modules/achievements/achievements.module';
 import { BiddingModule } from './modules/bidding/bidding.module';
 import { RemarksModule } from './modules/remarks/remarks.module';
+import { AppController } from './app.controller';
 
 @Module({
     imports: [
@@ -76,5 +77,6 @@ import { RemarksModule } from './modules/remarks/remarks.module';
         BiddingModule,
         RemarksModule,
     ],
+    controllers: [AppController],
 })
 export class AppModule { }
