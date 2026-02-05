@@ -153,7 +153,7 @@ export function BiddingPanel() {
                 </div>
 
                 {/* Place Bid Form */}
-                <div className="space-y-6">
+                <div className="space-y-6 sticky top-6 self-start">
                     <div className="card">
                         <h3 className="font-semibold mb-4 flex items-center gap-2">
                             <DollarSign className="h-5 w-5 text-primary" />
