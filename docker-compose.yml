@@ -46,10 +46,13 @@ services:
       NODE_ENV: production
       PORT: 4000
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-bullish_clash}
-      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-key-change-in-production}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    command: sh -c "node apps/api/dist/database/migrate.js && node apps/api/dist/main.js"
     ports:
       - "4000:4000"
     depends_on:
@@ -68,6 +71,9 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:4000}
+        NEXT_PUBLIC_WS_URL: ${WS_URL:-ws://localhost:4000}
     container_name: bullish-clash-web
     restart: unless-stopped
     environment:

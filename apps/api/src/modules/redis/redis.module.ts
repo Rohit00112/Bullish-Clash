@@ -20,7 +20,7 @@ export const REDIS_SUBSCRIBER = 'REDIS_SUBSCRIBER';
                 return new Redis({
                     host: configService.get<string>('REDIS_HOST') || 'localhost',
                     port: configService.get<number>('REDIS_PORT') || 6379,
-                    password: configService.get<string>('REDIS_PASSWORD') || undefined,
+                    password: configService.get<string>('REDIS_PASSWORD') ? configService.get<string>('REDIS_PASSWORD') : undefined,
                     db: 0,
                     maxRetriesPerRequest: 3,
                     connectTimeout: 5000,
@@ -34,7 +34,7 @@ export const REDIS_SUBSCRIBER = 'REDIS_SUBSCRIBER';
                 return new Redis({
                     host: configService.get<string>('REDIS_HOST') || 'localhost',
                     port: configService.get<number>('REDIS_PORT') || 6379,
-                    password: configService.get<string>('REDIS_PASSWORD') || undefined,
+                    password: configService.get<string>('REDIS_PASSWORD') ? configService.get<string>('REDIS_PASSWORD') : undefined,
                     db: 0,
                     maxRetriesPerRequest: 3,
                     connectTimeout: 5000,
@@ -48,7 +48,7 @@ export const REDIS_SUBSCRIBER = 'REDIS_SUBSCRIBER';
                 return new Redis({
                     host: configService.get<string>('REDIS_HOST') || 'localhost',
                     port: configService.get<number>('REDIS_PORT') || 6379,
-                    password: configService.get<string>('REDIS_PASSWORD') || undefined,
+                    password: configService.get<string>('REDIS_PASSWORD') ? configService.get<string>('REDIS_PASSWORD') : undefined,
                     db: 0,
                     maxRetriesPerRequest: 3,
                     connectTimeout: 5000,
