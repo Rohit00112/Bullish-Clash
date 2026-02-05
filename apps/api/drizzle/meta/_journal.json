@@ -43,6 +43,13 @@
       "when": 1769746168148,
       "tag": "0005_cultured_mole_man",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1770278784,
+      "tag": "0006_add_achievements",
+      "breakpoints": true
     }
   ]
 }

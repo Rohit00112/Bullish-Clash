@@ -141,7 +141,15 @@ async function seed() {
         });
         console.log('✅ Admin user created successfully');
 
-
+        // 2. Seed achievement definitions
+        console.log('Seeding achievement definitions...');
+        const { DEFAULT_ACHIEVEMENTS } = require('./schema/achievements');
+        for (const achievement of DEFAULT_ACHIEVEMENTS) {
+            await db.insert(schema.achievementDefinitions)
+                .values(achievement)
+                .onConflictDoNothing();
+        }
+        console.log('✅ Achievement definitions seeded');
 
         // 3. Create symbols
         console.log('Creating NEPSE symbols...');
