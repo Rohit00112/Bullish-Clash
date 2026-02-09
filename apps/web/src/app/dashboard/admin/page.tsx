@@ -23,7 +23,8 @@ import {
     Eye,
     EyeOff,
     Clock,
-    AlertTriangle
+    AlertTriangle,
+    FileBarChart,
 } from 'lucide-react';
 import { competitionApi, symbolsApi, pricesApi, eventsApi, biddingApi, authApi } from '@/lib/api';
 import { formatCurrency, formatPercent, formatNumber } from '@/lib/utils';
@@ -504,6 +505,14 @@ export default function AdminPage() {
                         >
                             <MessageSquare className="h-8 w-8 mx-auto mb-2 text-blue-400" />
                             <p className="font-medium">Review Remarks</p>
+                        </Link>
+
+                        <Link
+                            href="/dashboard/admin/reports"
+                            className="p-4 bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors text-center"
+                        >
+                            <FileBarChart className="h-8 w-8 mx-auto mb-2 text-orange-400" />
+                            <p className="font-medium">Quarterly Reports</p>
                         </Link>
 
                         <button

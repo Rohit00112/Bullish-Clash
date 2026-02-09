@@ -23,6 +23,7 @@ import {
     Star,
     Award,
     MessageSquare,
+    FileBarChart,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useWebSocket } from '@/hooks/use-websocket';
@@ -36,6 +37,7 @@ const navigation = [
     { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: Trophy },
     { name: 'Achievements', href: '/dashboard/achievements', icon: Award },
     { name: 'News', href: '/dashboard/news', icon: Newspaper },
+    { name: 'Reports', href: '/dashboard/reports', icon: FileBarChart },
     { name: 'History', href: '/dashboard/history', icon: History },
 ];
 
@@ -46,6 +48,7 @@ const adminNavigation = [
     { name: 'Symbols', href: '/dashboard/admin/symbols', icon: BarChart3 },
     { name: 'Settings', href: '/dashboard/admin/settings', icon: Settings },
     { name: 'Remarks', href: '/dashboard/admin/remarks', icon: MessageSquare },
+    { name: 'Reports', href: '/dashboard/admin/reports', icon: FileBarChart },
     { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: Trophy },
 ];
 

@@ -24,6 +24,7 @@ import { WatchlistModule } from './modules/watchlist/watchlist.module';
 import { AchievementsModule } from './modules/achievements/achievements.module';
 import { BiddingModule } from './modules/bidding/bidding.module';
 import { RemarksModule } from './modules/remarks/remarks.module';
+import { QuarterlyReportsModule } from './modules/quarterly-reports/quarterly-reports.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -76,6 +77,7 @@ import { AppController } from './app.controller';
         AchievementsModule,
         BiddingModule,
         RemarksModule,
+        QuarterlyReportsModule,
     ],
     controllers: [AppController],
 })

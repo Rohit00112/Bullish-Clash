@@ -333,3 +333,32 @@ export const remarksApi = {
     scoreRemark: (remarkId: string, score: number) => api.patch(`/remarks/${remarkId}/score`, { score }),
     update: (remarkId: string, content: string) => api.patch(`/remarks/${remarkId}`, { content }),
 };
+
+// ==================== QUARTERLY REPORTS ====================
+
+export const quarterlyReportsApi = {
+    // Get all published reports (with optional filters)
+    getAll: (params?: { fiscalYear?: string; quarter?: string; limit?: number }) =>
+        api.get('/quarterly-reports', { params }),
+
+    // Get reports for a specific symbol
+    getBySymbol: (symbolId: string) =>
+        api.get(`/quarterly-reports/symbol/${symbolId}`),
+
+    // Admin: Create/publish a quarterly report
+    create: (data: {
+        reportType: 'bank' | 'hydropower' | 'generic';
+        symbolId: string;
+        fiscalYear: string;
+        quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4';
+        [key: string]: any;
+    }) => api.post('/quarterly-reports', data),
+
+    // Admin: Update a report
+    update: (reportType: string, id: string, data: any) =>
+        api.patch(`/quarterly-reports/${reportType}/${id}`, data),
+
+    // Admin: Delete a report
+    delete: (reportType: string, id: string) =>
+        api.delete(`/quarterly-reports/${reportType}/${id}`),
+};
