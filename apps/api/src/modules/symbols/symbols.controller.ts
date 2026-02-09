@@ -5,7 +5,7 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { SymbolsService } from './symbols.service';
-import { CreateSymbolDto, UpdateSymbolDto } from './symbols.dto';
+import { CreateSymbolDto, UpdateSymbolDto, ListSymbolDto } from './symbols.dto';
 import { JwtAuthGuard, RolesGuard, Roles } from '../auth/auth.guards';
 
 @ApiTags('symbols')
@@ -18,13 +18,27 @@ export class SymbolsController {
     @ApiQuery({ name: 'sector', required: false, description: 'Filter by sector' })
     @ApiQuery({ name: 'search', required: false, description: 'Search by symbol or company name' })
     @ApiQuery({ name: 'activeOnly', required: false, type: Boolean })
+    @ApiQuery({ name: 'tradeableOnly', required: false, type: Boolean, description: 'Filter to only tradeable symbols' })
     @ApiResponse({ status: 200, description: 'List of symbols' })
     async findAll(
         @Query('sector') sector?: string,
         @Query('search') search?: string,
         @Query('activeOnly') activeOnly?: boolean,
+        @Query('tradeableOnly') tradeableOnly?: boolean,
     ) {
-        return this.symbolsService.findAll({ sector, search, activeOnly });
+        return this.symbolsService.findAll({ sector, search, activeOnly, tradeableOnly });
+    }
+
+    @Get('tradeable')
+    @ApiOperation({ summary: 'Get only tradeable symbols (went through bidding or admin-listed)' })
+    @ApiQuery({ name: 'sector', required: false, description: 'Filter by sector' })
+    @ApiQuery({ name: 'search', required: false, description: 'Search by symbol or company name' })
+    @ApiResponse({ status: 200, description: 'List of tradeable symbols' })
+    async findTradeable(
+        @Query('sector') sector?: string,
+        @Query('search') search?: string,
+    ) {
+        return this.symbolsService.findTradeable({ sector, search });
     }
 
     @Get('sectors')
@@ -62,6 +76,17 @@ export class SymbolsController {
     @ApiResponse({ status: 404, description: 'Symbol not found' })
     async update(@Param('id') id: string, @Body() dto: UpdateSymbolDto) {
         return this.symbolsService.update(id, dto);
+    }
+
+    @Patch(':id/listing')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin')
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'List or delist a symbol for trading (admin only)' })
+    @ApiResponse({ status: 200, description: 'Symbol listing status updated' })
+    @ApiResponse({ status: 404, description: 'Symbol not found' })
+    async setListingStatus(@Param('id') id: string, @Body() dto: ListSymbolDto) {
+        return this.symbolsService.setListingStatus(id, dto.isTradeable);
     }
 
     @Delete(':id')

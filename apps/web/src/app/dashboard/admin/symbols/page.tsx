@@ -25,6 +25,9 @@ interface Symbol {
     basePrice: number;
     currentPrice: number;
     listedShares?: number;
+    floorPrice?: number;
+    isTradeable: boolean;
+    wentThroughBidding: boolean;
     isActive: boolean;
     createdAt: string;
 }
@@ -57,6 +60,7 @@ export default function AdminSymbolsPage() {
     const [sector, setSector] = useState('');
     const [basePrice, setBasePrice] = useState('');
     const [listedShares, setListedShares] = useState('');
+    const [floorPrice, setFloorPrice] = useState('');
 
     // Fetch symbols
     const { data: symbols, isLoading } = useQuery({
@@ -69,7 +73,7 @@ export default function AdminSymbolsPage() {
 
     // Create symbol mutation
     const createSymbolMutation = useMutation({
-        mutationFn: async (data: { symbol: string; companyName: string; sector: string; basePrice: number; listedShares: number }) => {
+        mutationFn: async (data: { symbol: string; companyName: string; sector: string; basePrice: number; listedShares: number; floorPrice?: number }) => {
             const res = await symbolsApi.create(data);
             return res.data;
         },
@@ -119,6 +123,25 @@ export default function AdminSymbolsPage() {
         },
     });
 
+    // Toggle listing status mutation
+    const toggleListingMutation = useMutation({
+        mutationFn: async ({ id, isTradeable }: { id: string; isTradeable: boolean }) => {
+            const res = await symbolsApi.setListingStatus(id, isTradeable);
+            return res.data;
+        },
+        onSuccess: (_, variables) => {
+            toast({ title: variables.isTradeable ? 'Symbol Listed for Trading' : 'Symbol Unlisted from Trading' });
+            queryClient.invalidateQueries({ queryKey: ['admin-symbols'] });
+        },
+        onError: (error: any) => {
+            toast({
+                title: 'Error',
+                description: error.response?.data?.message || 'Failed to update listing status',
+                variant: 'destructive',
+            });
+        },
+    });
+
     // Delete symbol mutation
     const deleteSymbolMutation = useMutation({
         mutationFn: async (id: string) => {
@@ -139,6 +162,7 @@ export default function AdminSymbolsPage() {
         setSector('');
         setBasePrice('');
         setListedShares('10000');
+        setFloorPrice('');
         setIsModalOpen(true);
     };
 
@@ -150,6 +174,7 @@ export default function AdminSymbolsPage() {
         setSector(symbol.sector);
         setBasePrice(symbol.basePrice.toString());
         setListedShares(symbol.listedShares?.toString() || '');
+        setFloorPrice(symbol.floorPrice?.toString() || '');
         setIsModalOpen(true);
     };
 
@@ -162,29 +187,29 @@ export default function AdminSymbolsPage() {
     // Handle form submit
     const handleSubmit = () => {
         if (!symbolCode || !companyName || !sector || !basePrice || !listedShares) {
-            toast({ title: 'Please fill in all fields', variant: 'destructive' });
+            toast({ title: 'Please fill in all required fields', variant: 'destructive' });
             return;
+        }
+
+        const symbolData: any = {
+            symbol: symbolCode.toUpperCase(),
+            companyName,
+            sector,
+            basePrice: parseFloat(basePrice),
+            listedShares: parseInt(listedShares),
+        };
+
+        if (floorPrice) {
+            symbolData.floorPrice = parseFloat(floorPrice);
         }
 
         if (editingSymbol) {
             updateSymbolMutation.mutate({
                 id: editingSymbol.id,
-                data: {
-                    symbol: symbolCode.toUpperCase(),
-                    companyName,
-                    sector,
-                    basePrice: parseFloat(basePrice),
-                    listedShares: parseInt(listedShares),
-                },
+                data: symbolData,
             });
         } else {
-            createSymbolMutation.mutate({
-                symbol: symbolCode.toUpperCase(),
-                companyName,
-                sector,
-                basePrice: parseFloat(basePrice),
-                listedShares: parseInt(listedShares),
-            });
+            createSymbolMutation.mutate(symbolData);
         }
     };
 
@@ -275,9 +300,11 @@ export default function AdminSymbolsPage() {
                                         <th className="text-left py-2 px-4">Ticker</th>
                                         <th className="text-left py-2 px-4">Name</th>
                                         <th className="text-right py-2 px-4">Base Price</th>
+                                        <th className="text-right py-2 px-4">Floor Price</th>
                                         <th className="text-right py-2 px-4">Listed Shares</th>
                                         <th className="text-right py-2 px-4">Current Price</th>
                                         <th className="text-center py-2 px-4">Status</th>
+                                        <th className="text-center py-2 px-4">Tradeable</th>
                                         <th className="text-right py-2 px-4">Actions</th>
                                     </tr>
                                 </thead>
@@ -291,6 +318,9 @@ export default function AdminSymbolsPage() {
                                             <td className="py-3 px-4 text-muted-foreground">{symbol.companyName}</td>
                                             <td className="py-3 px-4 text-right font-mono">
                                                 {formatCurrency(symbol.basePrice)}
+                                            </td>
+                                            <td className="py-3 px-4 text-right font-mono text-green-500">
+                                                {symbol.floorPrice ? formatCurrency(symbol.floorPrice) : '-'}
                                             </td>
                                             <td className="py-3 px-4 text-right font-mono">
                                                 {formatNumber(symbol.listedShares || 0)}
@@ -312,6 +342,24 @@ export default function AdminSymbolsPage() {
                                                         }`}
                                                 >
                                                     {symbol.isActive ? 'Active' : 'Inactive'}
+                                                </button>
+                                            </td>
+                                            <td className="py-3 px-4 text-center">
+                                                <button
+                                                    onClick={() =>
+                                                        toggleListingMutation.mutate({
+                                                            id: symbol.id,
+                                                            isTradeable: !symbol.isTradeable,
+                                                        })
+                                                    }
+                                                    disabled={toggleListingMutation.isPending}
+                                                    className={`px-2 py-1 rounded text-xs font-medium ${symbol.isTradeable
+                                                        ? 'bg-blue-500/20 text-blue-500'
+                                                        : 'bg-gray-500/20 text-gray-400'
+                                                        }`}
+                                                    title={symbol.wentThroughBidding ? 'Went through bidding' : 'Did not go through bidding'}
+                                                >
+                                                    {symbol.isTradeable ? 'Listed' : 'Unlisted'}
                                                 </button>
                                             </td>
                                             <td className="py-3 px-4">
@@ -414,6 +462,22 @@ export default function AdminSymbolsPage() {
                                         min="0"
                                         step="0.01"
                                     />
+                                </div>
+
+                                <div>
+                                    <label className="label">Floor Price for Bidding (Rs.)</label>
+                                    <input
+                                        type="number"
+                                        value={floorPrice}
+                                        onChange={(e) => setFloorPrice(e.target.value)}
+                                        placeholder="e.g., 100 (optional)"
+                                        className="input w-full"
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        Minimum bid price during IPO bidding phase. Leave empty if not applicable.
+                                    </p>
                                 </div>
 
                                 <div>

@@ -35,6 +35,13 @@ export class EventsService {
             }
         }
 
+        // Validate symbols in symbolImpacts if specified
+        if (dto.symbolImpacts) {
+            for (const symbolId of Object.keys(dto.symbolImpacts)) {
+                await this.symbolsService.findById(symbolId);
+            }
+        }
+
         const [event] = await this.db.insert(schema.marketEvents).values({
             id: eventId,
             title: dto.title,
@@ -43,6 +50,7 @@ export class EventsService {
             priceUpdateType: dto.priceUpdateType,
             magnitude: dto.magnitude.toString(),
             affectedSymbols: dto.affectedSymbols || [],
+            symbolImpacts: dto.symbolImpacts || {},
             affectAllSymbols: dto.affectAllSymbols ?? false,
             isExecuted: false,
             scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
@@ -54,6 +62,7 @@ export class EventsService {
             title: dto.title,
             magnitude: dto.magnitude,
             priceUpdateType: dto.priceUpdateType,
+            symbolImpacts: dto.symbolImpacts,
         });
 
         // Execute immediately if requested
@@ -88,18 +97,25 @@ export class EventsService {
             const allSymbols = await this.symbolsService.findAll({ activeOnly: true });
             symbolIds = allSymbols.map((s: any) => s.id);
         } else {
-            symbolIds = event.affectedSymbols || [];
+            // Use affectedSymbols or keys from symbolImpacts
+            const impactSymbolIds = event.symbolImpacts ? Object.keys(event.symbolImpacts) : [];
+            const affectedIds = event.affectedSymbols || [];
+            symbolIds = [...new Set([...affectedIds, ...impactSymbolIds])];
         }
 
         if (symbolIds.length === 0) {
             throw new BadRequestException('No symbols to update');
         }
 
-        // Prepare price updates
+        // Prepare price updates - use per-symbol impacts if available
+        const symbolImpacts: Record<string, number> = event.symbolImpacts || {};
+        const defaultMagnitude = parseFloat(event.magnitude);
+
         const priceUpdates: PriceUpdate[] = symbolIds.map(symbolId => ({
             symbolId,
             priceUpdateType: event.priceUpdateType,
-            magnitude: parseFloat(event.magnitude),
+            // Use per-symbol impact if available, otherwise use default magnitude
+            magnitude: symbolImpacts[symbolId] !== undefined ? symbolImpacts[symbolId] : defaultMagnitude,
             eventId,
         }));
 
@@ -256,6 +272,13 @@ export class EventsService {
             }
         }
 
+        // Validate symbols in symbolImpacts if specified
+        if (dto.symbolImpacts) {
+            for (const symbolId of Object.keys(dto.symbolImpacts)) {
+                await this.symbolsService.findById(symbolId);
+            }
+        }
+
         const updateData: any = {
             updatedAt: new Date(),
         };
@@ -266,6 +289,7 @@ export class EventsService {
         if (dto.priceUpdateType !== undefined) updateData.priceUpdateType = dto.priceUpdateType;
         if (dto.magnitude !== undefined) updateData.magnitude = dto.magnitude.toString();
         if (dto.affectedSymbols !== undefined) updateData.affectedSymbols = dto.affectedSymbols;
+        if (dto.symbolImpacts !== undefined) updateData.symbolImpacts = dto.symbolImpacts;
         if (dto.affectAllSymbols !== undefined) updateData.affectAllSymbols = dto.affectAllSymbols;
         if (dto.scheduledAt !== undefined) updateData.scheduledAt = dto.scheduledAt ? new Date(dto.scheduledAt) : null;
 

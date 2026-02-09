@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, TrendingUp, TrendingDown, DollarSign, Wallet, History, AlertCircle } from 'lucide-react';
-import { biddingApi, symbolsApi, portfolioApi } from '@/lib/api';
+import { biddingApi, portfolioApi } from '@/lib/api';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -13,6 +13,7 @@ interface Symbol {
     isActive: boolean;
     listedShares?: number;
     availableShares?: number;
+    floorPrice?: number;
 }
 
 export function BiddingPanel() {
@@ -22,11 +23,11 @@ export function BiddingPanel() {
     const [bidQuantity, setBidQuantity] = useState('');
     const [bidPrice, setBidPrice] = useState('');
 
-    // Fetch Symbols (IPO stocks)
+    // Fetch Symbols (IPO stocks available for bidding)
     const { data: symbolsData, isLoading: symbolsLoading } = useQuery({
-        queryKey: ['symbols'],
+        queryKey: ['biddable-symbols'],
         queryFn: async () => {
-            const res = await symbolsApi.getAll();
+            const res = await biddingApi.getBiddableSymbols();
             return res.data;
         },
     });
@@ -117,6 +118,7 @@ export function BiddingPanel() {
                                     <th className="p-3">Symbol</th>
                                     <th className="p-3">Company</th>
                                     <th className="p-3">Sector</th>
+                                    <th className="p-3 text-right">Floor Price</th>
                                     <th className="p-3 text-right">Available Qty</th>
                                     <th className="p-3 text-right">Action</th>
                                 </tr>
@@ -131,6 +133,9 @@ export function BiddingPanel() {
                                         <td className="p-3 font-semibold text-primary cursor-pointer">{symbol.symbol}</td>
                                         <td className="p-3 text-muted-foreground">{symbol.companyName}</td>
                                         <td className="p-3 text-muted-foreground">{symbol.sector}</td>
+                                        <td className="p-3 text-right font-mono text-green-500">
+                                            {symbol.floorPrice ? formatCurrency(symbol.floorPrice) : '-'}
+                                        </td>
                                         <td className="p-3 text-right font-mono">
                                             {symbol.availableShares !== undefined ? formatNumber(symbol.availableShares) : symbol.listedShares ? formatNumber(symbol.listedShares) : '-'}
                                         </td>
@@ -165,6 +170,11 @@ export function BiddingPanel() {
                                 <div className="bg-secondary/30 p-3 rounded-lg">
                                     <p className="font-bold text-lg">{selectedSymbol.symbol}</p>
                                     <p className="text-sm text-muted-foreground">{selectedSymbol.companyName}</p>
+                                    {selectedSymbol.floorPrice && (
+                                        <p className="text-sm text-green-500 mt-1">
+                                            Floor Price: {formatCurrency(selectedSymbol.floorPrice)}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -184,14 +194,19 @@ export function BiddingPanel() {
                                     <label className="label">Bid Price</label>
                                     <input
                                         type="number"
-                                        min="1"
+                                        min={selectedSymbol.floorPrice || 1}
                                         step="0.01"
-                                        placeholder="Price per share"
+                                        placeholder={selectedSymbol.floorPrice ? `Min ${formatCurrency(selectedSymbol.floorPrice)}` : "Price per share"}
                                         className="input w-full"
                                         value={bidPrice}
                                         onChange={(e) => setBidPrice(e.target.value)}
                                         required
                                     />
+                                    {selectedSymbol.floorPrice && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            Minimum bid price is {formatCurrency(selectedSymbol.floorPrice)}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="bg-secondary/20 p-3 rounded-lg space-y-2 text-sm">
@@ -205,10 +220,21 @@ export function BiddingPanel() {
                                     </div>
                                 </div>
 
+                                {selectedSymbol.floorPrice && parseFloat(bidPrice) < selectedSymbol.floorPrice && bidPrice !== '' && (
+                                    <p className="text-red-500 text-sm">
+                                        Bid price must be at least {formatCurrency(selectedSymbol.floorPrice)}
+                                    </p>
+                                )}
+
                                 <button
                                     type="submit"
                                     className="btn-primary w-full"
-                                    disabled={placeBidMutation.isPending || totalCost > (parseFloat(portfolio?.cash) || 0) || totalCost === 0}
+                                    disabled={
+                                        placeBidMutation.isPending ||
+                                        totalCost > (parseFloat(portfolio?.cash) || 0) ||
+                                        totalCost === 0 ||
+                                        (selectedSymbol.floorPrice ? parseFloat(bidPrice) < selectedSymbol.floorPrice : false)
+                                    }
                                 >
                                     {placeBidMutation.isPending ? <Loader2 className="animate-spin h-4 w-4 mx-auto" /> : 'Submit Bid'}
                                 </button>

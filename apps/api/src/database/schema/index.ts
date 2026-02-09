@@ -29,3 +29,6 @@ export * from './bids';
 
 // Remarks
 export * from './remarks';
+
+// Quarterly Financial Reports
+export * from './quarterly-reports';

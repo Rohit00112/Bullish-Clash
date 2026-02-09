@@ -50,6 +50,20 @@
       "when": 1770278784,
       "tag": "0006_add_achievements",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1770649200000,
+      "tag": "0007_sparkling_zarek",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1770735600000,
+      "tag": "0008_bidding_listing_reports",
+      "breakpoints": true
     }
   ]
 }

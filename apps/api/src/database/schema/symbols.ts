@@ -40,6 +40,14 @@ export const symbols = pgTable('symbols', {
     listedShares: bigint('listed_shares', { mode: 'number' }),
     logoUrl: text('logo_url'),
     basePrice: numeric('base_price', { precision: 15, scale: 2 }).notNull(),
+
+    // Bidding floor price - participants cannot bid below this price
+    floorPrice: numeric('floor_price', { precision: 15, scale: 2 }),
+
+    // Listing status - controls whether symbol appears in trading
+    isTradeable: boolean('is_tradeable').notNull().default(false),
+    wentThroughBidding: boolean('went_through_bidding').notNull().default(false),
+
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

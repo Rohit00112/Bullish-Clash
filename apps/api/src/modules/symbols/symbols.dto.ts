@@ -37,6 +37,12 @@ export class CreateSymbolDto {
     @Min(0.01)
     basePrice: number;
 
+    @ApiProperty({ required: false, example: 100, description: 'Floor price for bidding - participants cannot bid below this' })
+    @IsOptional()
+    @IsNumber()
+    @Min(0.01)
+    floorPrice?: number;
+
     @ApiProperty({ required: false, example: 80000000 })
     @IsOptional()
     @IsNumber()
@@ -70,6 +76,12 @@ export class UpdateSymbolDto {
     @Min(0.01)
     basePrice?: number;
 
+    @ApiProperty({ required: false, description: 'Floor price for bidding' })
+    @IsOptional()
+    @IsNumber()
+    @Min(0.01)
+    floorPrice?: number;
+
     @ApiProperty({ required: false })
     @IsOptional()
     @IsNumber()
@@ -84,4 +96,16 @@ export class UpdateSymbolDto {
     @IsOptional()
     @IsBoolean()
     isActive?: boolean;
+
+    @ApiProperty({ required: false, description: 'Whether symbol is tradeable (admin can list symbols manually)' })
+    @IsOptional()
+    @IsBoolean()
+    isTradeable?: boolean;
+}
+
+// DTO for admin to manually list/delist symbols
+export class ListSymbolDto {
+    @ApiProperty({ example: true, description: 'Whether to list (true) or delist (false) the symbol' })
+    @IsBoolean()
+    isTradeable: boolean;
 }

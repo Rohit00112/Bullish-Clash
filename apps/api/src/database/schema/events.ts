@@ -48,6 +48,10 @@ export const marketEvents = pgTable('market_events', {
     affectedSymbols: jsonb('affected_symbols').$type<string[]>().default([]),
     affectAllSymbols: boolean('affect_all_symbols').notNull().default(false),
 
+    // Per-symbol expected impact: { symbolId: expectedImpactPercent }
+    // e.g., { "uuid-hubl": 12, "uuid-epbl": 10, "uuid-stbl": 8 }
+    symbolImpacts: jsonb('symbol_impacts').$type<Record<string, number>>().default({}),
+
     // Execution status
     isExecuted: boolean('is_executed').notNull().default(false),
     scheduledAt: timestamp('scheduled_at', { withTimezone: true }),

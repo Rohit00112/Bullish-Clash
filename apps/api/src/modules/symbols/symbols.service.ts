@@ -25,11 +25,15 @@ export class SymbolsService {
         });
     }
 
-    async findAll(options?: { sector?: string; search?: string; activeOnly?: boolean }) {
+    async findAll(options?: { sector?: string; search?: string; activeOnly?: boolean; tradeableOnly?: boolean }) {
         let conditions: any[] = [];
 
         if (options?.activeOnly !== false) {
             conditions.push(eq(schema.symbols.isActive, true));
+        }
+
+        if (options?.tradeableOnly === true) {
+            conditions.push(eq(schema.symbols.isTradeable, true));
         }
 
         if (options?.sector) {
@@ -71,6 +75,7 @@ export class SymbolsService {
             const latestPrice = priceMap.get(s.id) as any;
             const heldQuantity = holdingsGroupBySymbol.get(s.id) || 0;
             const availableShares = s.listedShares ? Math.max(0, s.listedShares - heldQuantity) : 0;
+            const floorPrice = s.floorPrice ? parseFloat(s.floorPrice) : parseFloat(s.basePrice);
 
             return {
                 ...s,
@@ -78,6 +83,9 @@ export class SymbolsService {
                 change: latestPrice ? parseFloat(latestPrice.change) : 0,
                 changePercent: latestPrice ? parseFloat(latestPrice.changePercent) : 0,
                 availableShares: availableShares,
+                floorPrice: floorPrice,
+                isTradeable: s.isTradeable,
+                wentThroughBidding: s.wentThroughBidding,
             };
         });
 
@@ -152,7 +160,9 @@ export class SymbolsService {
 
         const symbolId = uuid();
 
-        // Create symbol
+        // Create symbol - floor price defaults to base price if not provided
+        const floorPrice = dto.floorPrice ?? dto.basePrice;
+
         const [symbol] = await this.db.insert(schema.symbols).values({
             id: symbolId,
             symbol: dto.symbol.toUpperCase(),
@@ -161,7 +171,10 @@ export class SymbolsService {
             listedShares: dto.listedShares,
             logoUrl: dto.logoUrl,
             basePrice: dto.basePrice.toString(),
+            floorPrice: floorPrice.toString(),
             isActive: true,
+            isTradeable: false, // Not tradeable until bidding or admin lists
+            wentThroughBidding: false,
         }).returning();
 
         // Initialize latest price
@@ -190,16 +203,50 @@ export class SymbolsService {
                 ...(dto.companyName && { companyName: dto.companyName }),
                 ...(dto.sector && { sector: dto.sector as any }),
                 ...(dto.basePrice && { basePrice: dto.basePrice.toString() }),
+                ...(dto.floorPrice && { floorPrice: dto.floorPrice.toString() }),
                 ...(dto.sector && { sector: dto.sector as any }),
                 ...(dto.listedShares !== undefined && { listedShares: dto.listedShares }),
                 ...(dto.logoUrl !== undefined && { logoUrl: dto.logoUrl }),
                 ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+                ...(dto.isTradeable !== undefined && { isTradeable: dto.isTradeable }),
                 updatedAt: new Date(),
             })
             .where(eq(schema.symbols.id, id))
             .returning();
 
         return updated;
+    }
+
+    // Admin: Manually list or delist a symbol for trading
+    async setListingStatus(id: string, isTradeable: boolean) {
+        // Check if symbol exists
+        await this.findById(id);
+
+        const [updated] = await this.db.update(schema.symbols)
+            .set({
+                isTradeable,
+                updatedAt: new Date(),
+            })
+            .where(eq(schema.symbols.id, id))
+            .returning();
+
+        return {
+            success: true,
+            symbol: updated.symbol,
+            isTradeable: updated.isTradeable,
+            message: isTradeable
+                ? `${updated.symbol} is now listed for trading`
+                : `${updated.symbol} has been delisted from trading`,
+        };
+    }
+
+    // Get only tradeable symbols (for trading UI)
+    async findTradeable(options?: { sector?: string; search?: string }) {
+        return this.findAll({
+            ...options,
+            activeOnly: true,
+            tradeableOnly: true,
+        });
     }
 
     async delete(id: string) {

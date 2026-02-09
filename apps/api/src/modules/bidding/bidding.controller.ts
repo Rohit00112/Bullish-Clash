@@ -9,10 +9,17 @@ import { PlaceBidDto, BidResponseDto } from './bidding.dto';
 export class BiddingController {
     constructor(private readonly biddingService: BiddingService) { }
 
+    @Get('symbols')
+    @ApiOperation({ summary: 'Get all biddable symbols with floor prices' })
+    @ApiResponse({ status: 200, description: 'List of biddable symbols with floor prices' })
+    async getBiddableSymbols() {
+        return this.biddingService.getBiddableSymbols();
+    }
+
     @Post()
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Place a bid (during Bidding Phase)' })
+    @ApiOperation({ summary: 'Place a bid (during Bidding Phase). Price must be >= floor price.' })
     @ApiResponse({ status: 201, description: 'Bid placed successfully' })
     async placeBid(
         @CurrentUser('id') userId: string,

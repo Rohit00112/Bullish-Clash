@@ -105,17 +105,24 @@ export const authApi = {
 // ==================== SYMBOLS ====================
 
 export const symbolsApi = {
-    getAll: (params?: { sector?: string; search?: string }) =>
+    getAll: (params?: { sector?: string; search?: string; tradeableOnly?: boolean }) =>
         api.get('/symbols', { params }),
 
     getById: (id: string) => api.get(`/symbols/${id}`),
 
     getSectors: () => api.get('/symbols/sectors'),
 
+    // Get only tradeable symbols
+    getTradeable: () => api.get('/symbols/tradeable'),
+
     // Admin
     create: (data: any) => api.post('/symbols', data),
     update: (id: string, data: any) => api.patch(`/symbols/${id}`, data),
     delete: (id: string) => api.delete(`/symbols/${id}`),
+
+    // Admin - set listing status (isTradeable)
+    setListingStatus: (id: string, isTradeable: boolean) =>
+        api.patch(`/symbols/${id}/listing`, { isTradeable }),
 };
 
 // ==================== PRICES ====================
@@ -302,6 +309,9 @@ export const biddingApi = {
         api.post('/bidding', data),
 
     getMyBids: () => api.get('/bidding/me'),
+
+    // Get symbols available for bidding (with floor prices)
+    getBiddableSymbols: () => api.get('/bidding/symbols'),
 
     // Admin
     processBids: (competitionId: string) =>

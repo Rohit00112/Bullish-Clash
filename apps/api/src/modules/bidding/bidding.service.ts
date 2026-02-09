@@ -13,6 +13,31 @@ export class BiddingService {
         private readonly competitionService: CompetitionService,
     ) { }
 
+    // Get all biddable symbols with their floor prices
+    async getBiddableSymbols() {
+        const competition = await this.competitionService.getActiveCompetition();
+
+        if (!competition || competition.status !== 'bidding') {
+            return [];
+        }
+
+        const symbols = await this.db.query.symbols.findMany({
+            where: eq(schema.symbols.isActive, true),
+            orderBy: [schema.symbols.symbol],
+        });
+
+        return symbols.map((s: any) => ({
+            id: s.id,
+            symbol: s.symbol,
+            companyName: s.companyName,
+            sector: s.sector,
+            basePrice: parseFloat(s.basePrice),
+            floorPrice: s.floorPrice ? parseFloat(s.floorPrice) : parseFloat(s.basePrice),
+            listedShares: s.listedShares,
+            logoUrl: s.logoUrl,
+        }));
+    }
+
     async placeBid(userId: string, dto: PlaceBidDto) {
         // 1. Get active competition
         const competition = await this.competitionService.getActiveCompetition();
@@ -34,7 +59,16 @@ export class BiddingService {
             throw new NotFoundException('Symbol not found');
         }
 
-        // 4. Check user balance (Total Cost = Price * Quantity)
+        // 4. Validate bid price against floor price
+        // Participants CANNOT bid below floor price, but CAN bid higher
+        const floorPrice = symbol.floorPrice ? Number(symbol.floorPrice) : Number(symbol.basePrice);
+        if (dto.price < floorPrice) {
+            throw new BadRequestException(
+                `Bid price cannot be below floor price of रू${floorPrice.toFixed(2)}. You can bid at or above this price.`
+            );
+        }
+
+        // 5. Check user balance (Total Cost = Price * Quantity)
         const totalCost = dto.price * dto.quantity;
 
         const portfolio = await this.db.query.portfolios.findFirst({
@@ -111,11 +145,14 @@ export class BiddingService {
             const sym = await this.db.query.symbols.findFirst({
                 where: eq(schema.symbols.id, bid.symbolId),
             });
+            const floorPrice = sym?.floorPrice ? parseFloat(sym.floorPrice) : parseFloat(sym?.basePrice || '0');
             return {
                 ...bid,
                 symbolSymbol: sym?.symbol,
                 price: parseFloat(bid.price),
                 total: parseFloat(bid.price) * bid.quantity,
+                floorPrice: floorPrice,
+                companyName: sym?.companyName,
             };
         }));
 
@@ -311,6 +348,17 @@ export class BiddingService {
                 });
 
                 allocatedCount++;
+            }
+
+            // Mark all symbols that received bids as tradeable (went through bidding)
+            for (const symbolId of symbolIds as string[]) {
+                await tx.update(schema.symbols)
+                    .set({
+                        wentThroughBidding: true,
+                        isTradeable: true,
+                        updatedAt: new Date(),
+                    })
+                    .where(eq(schema.symbols.id, symbolId));
             }
         });
 

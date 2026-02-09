@@ -34,6 +34,7 @@ interface MarketEvent {
     magnitude: number;
     affectedSymbols: string[];
     affectAllSymbols: boolean;
+    symbolImpacts?: Record<string, number>;
     scheduledAt?: string;
     executedAt?: string;
     createdAt: string;
@@ -57,6 +58,10 @@ export default function AdminEventsPage() {
     const [affectedSymbols, setAffectedSymbols] = useState<string[]>([]);
     const [selectedSymbolId, setSelectedSymbolId] = useState('');
     const [affectAllSymbols, setAffectAllSymbols] = useState(false);
+    const [usePerSymbolImpacts, setUsePerSymbolImpacts] = useState(false);
+    const [symbolImpacts, setSymbolImpacts] = useState<Record<string, number>>({});
+    const [selectedImpactSymbolId, setSelectedImpactSymbolId] = useState('');
+    const [selectedImpactValue, setSelectedImpactValue] = useState('');
 
     // Fetch events
     const { data: events, isLoading } = useQuery({
@@ -168,6 +173,10 @@ export default function AdminEventsPage() {
         setMagnitude('');
         setAffectedSymbols([]);
         setAffectAllSymbols(false);
+        setUsePerSymbolImpacts(false);
+        setSymbolImpacts({});
+        setSelectedImpactSymbolId('');
+        setSelectedImpactValue('');
         setIsModalOpen(true);
     };
 
@@ -182,6 +191,10 @@ export default function AdminEventsPage() {
         setMagnitude(event.magnitude.toString());
         setAffectedSymbols(event.affectedSymbols || []);
         setAffectAllSymbols(event.affectAllSymbols);
+        setUsePerSymbolImpacts(!!event.symbolImpacts && Object.keys(event.symbolImpacts).length > 0);
+        setSymbolImpacts(event.symbolImpacts || {});
+        setSelectedImpactSymbolId('');
+        setSelectedImpactValue('');
         setIsModalOpen(true);
     };
 
@@ -216,28 +229,69 @@ export default function AdminEventsPage() {
         return symbol?.symbol || symbolId;
     };
 
+    // Add symbol impact
+    const addSymbolImpact = () => {
+        if (!selectedImpactSymbolId || !selectedImpactValue) return;
+
+        setSymbolImpacts({
+            ...symbolImpacts,
+            [selectedImpactSymbolId]: parseFloat(selectedImpactValue),
+        });
+        setSelectedImpactSymbolId('');
+        setSelectedImpactValue('');
+    };
+
+    // Remove symbol impact
+    const removeSymbolImpact = (symbolId: string) => {
+        const newImpacts = { ...symbolImpacts };
+        delete newImpacts[symbolId];
+        setSymbolImpacts(newImpacts);
+    };
+
     // Handle form submit
     const handleSubmit = () => {
-        if (!title || !description || !magnitude) {
-            toast({ title: 'Please fill in all required fields', variant: 'destructive' });
+        if (!title || !description) {
+            toast({ title: 'Please fill in title and description', variant: 'destructive' });
             return;
         }
 
-        if (!affectAllSymbols && affectedSymbols.length === 0) {
+        // If using per-symbol impacts, validate that
+        if (usePerSymbolImpacts && Object.keys(symbolImpacts).length === 0) {
+            toast({ title: 'Please add at least one symbol with its impact', variant: 'destructive' });
+            return;
+        }
+
+        // If not using per-symbol impacts, require magnitude
+        if (!usePerSymbolImpacts && !magnitude) {
+            toast({ title: 'Please enter the magnitude', variant: 'destructive' });
+            return;
+        }
+
+        if (!usePerSymbolImpacts && !affectAllSymbols && affectedSymbols.length === 0) {
             toast({ title: 'Please select at least one symbol or check "Affect All Symbols"', variant: 'destructive' });
             return;
         }
 
-        const eventData = {
+        const eventData: any = {
             title,
             description,
             impactType,
             priceUpdateType,
-            magnitude: parseFloat(magnitude),
-            affectedSymbols: affectAllSymbols ? undefined : affectedSymbols,
-            affectAllSymbols,
             scheduledAt: scheduledAt || undefined,
         };
+
+        if (usePerSymbolImpacts) {
+            // When using per-symbol impacts, use the symbol IDs from symbolImpacts as affectedSymbols
+            eventData.symbolImpacts = symbolImpacts;
+            eventData.affectedSymbols = Object.keys(symbolImpacts);
+            eventData.affectAllSymbols = false;
+            // Set magnitude to 0 as it's not used when symbolImpacts is provided
+            eventData.magnitude = 0;
+        } else {
+            eventData.magnitude = parseFloat(magnitude);
+            eventData.affectedSymbols = affectAllSymbols ? undefined : affectedSymbols;
+            eventData.affectAllSymbols = affectAllSymbols;
+        }
 
         if (editingEvent) {
             updateEventMutation.mutate({ eventId: editingEvent.id, data: eventData });
@@ -314,11 +368,17 @@ export default function AdminEventsPage() {
                                         }`}>
                                         {event.impactType.charAt(0).toUpperCase() + event.impactType.slice(1)}
                                     </span>
-                                    <span className="px-2 py-1 rounded text-sm font-medium bg-blue-500/20 text-blue-500">
-                                        {event.priceUpdateType === 'percentage' ? `${event.magnitude}%` :
-                                            event.priceUpdateType === 'absolute' ? `Rs. ${event.magnitude}` :
-                                                `Override: ${event.magnitude}`}
-                                    </span>
+                                    {event.symbolImpacts && Object.keys(event.symbolImpacts).length > 0 ? (
+                                        <span className="px-2 py-1 rounded text-sm font-medium bg-purple-500/20 text-purple-500">
+                                            Per-symbol impacts
+                                        </span>
+                                    ) : (
+                                        <span className="px-2 py-1 rounded text-sm font-medium bg-blue-500/20 text-blue-500">
+                                            {event.priceUpdateType === 'percentage' ? `${event.magnitude}%` :
+                                                event.priceUpdateType === 'absolute' ? `Rs. ${event.magnitude}` :
+                                                    `Override: ${event.magnitude}`}
+                                        </span>
+                                    )}
                                     {event.affectAllSymbols ? (
                                         <span className="px-2 py-1 rounded text-sm font-medium bg-purple-500/20 text-purple-500">
                                             All Symbols
@@ -329,6 +389,20 @@ export default function AdminEventsPage() {
                                         </span>
                                     ) : null}
                                 </div>
+
+                                {/* Show per-symbol impacts if present */}
+                                {event.symbolImpacts && Object.keys(event.symbolImpacts).length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {Object.entries(event.symbolImpacts).map(([symbolId, impact]) => (
+                                            <span
+                                                key={symbolId}
+                                                className={`px-2 py-1 rounded text-xs font-medium ${Number(impact) >= 0 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}
+                                            >
+                                                {getSymbolTicker(symbolId)}: {Number(impact) >= 0 ? '+' : ''}{impact}%
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
 
                                 {/* Meta & Actions */}
                                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
@@ -441,36 +515,38 @@ export default function AdminEventsPage() {
                                 </div>
 
                                 {/* Price Update Type & Magnitude */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="label">Price Update Type *</label>
-                                        <select
-                                            value={priceUpdateType}
-                                            onChange={(e) => setPriceUpdateType(e.target.value as 'percentage' | 'absolute' | 'override')}
-                                            className="input w-full"
-                                        >
-                                            <option value="percentage">Percentage Change</option>
-                                            <option value="absolute">Absolute Change</option>
-                                            <option value="override">Override Price</option>
-                                        </select>
+                                {!usePerSymbolImpacts && (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="label">Price Update Type *</label>
+                                            <select
+                                                value={priceUpdateType}
+                                                onChange={(e) => setPriceUpdateType(e.target.value as 'percentage' | 'absolute' | 'override')}
+                                                className="input w-full"
+                                            >
+                                                <option value="percentage">Percentage Change</option>
+                                                <option value="absolute">Absolute Change</option>
+                                                <option value="override">Override Price</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="label">Magnitude *</label>
+                                            <input
+                                                type="number"
+                                                value={magnitude}
+                                                onChange={(e) => setMagnitude(e.target.value)}
+                                                placeholder={priceUpdateType === 'percentage' ? 'e.g., 5 for 5%' : 'e.g., 100'}
+                                                className="input w-full"
+                                                step="0.01"
+                                            />
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {priceUpdateType === 'percentage' && 'Percentage change to apply'}
+                                                {priceUpdateType === 'absolute' && 'Amount to add/subtract'}
+                                                {priceUpdateType === 'override' && 'New price value'}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="label">Magnitude *</label>
-                                        <input
-                                            type="number"
-                                            value={magnitude}
-                                            onChange={(e) => setMagnitude(e.target.value)}
-                                            placeholder={priceUpdateType === 'percentage' ? 'e.g., 5 for 5%' : 'e.g., 100'}
-                                            className="input w-full"
-                                            step="0.01"
-                                        />
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            {priceUpdateType === 'percentage' && 'Percentage change to apply'}
-                                            {priceUpdateType === 'absolute' && 'Amount to add/subtract'}
-                                            {priceUpdateType === 'override' && 'New price value'}
-                                        </p>
-                                    </div>
-                                </div>
+                                )}
 
                                 {/* Schedule (optional) */}
                                 <div>
@@ -492,16 +568,104 @@ export default function AdminEventsPage() {
                                         type="checkbox"
                                         id="affectAllSymbols"
                                         checked={affectAllSymbols}
-                                        onChange={(e) => setAffectAllSymbols(e.target.checked)}
+                                        onChange={(e) => {
+                                            setAffectAllSymbols(e.target.checked);
+                                            if (e.target.checked) {
+                                                setUsePerSymbolImpacts(false);
+                                            }
+                                        }}
+                                        disabled={usePerSymbolImpacts}
                                         className="w-4 h-4 rounded border-border"
                                     />
                                     <label htmlFor="affectAllSymbols" className="text-sm">
-                                        Affect all symbols
+                                        Affect all symbols (same impact)
                                     </label>
                                 </div>
 
+                                {/* Use Per-Symbol Impacts */}
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="usePerSymbolImpacts"
+                                        checked={usePerSymbolImpacts}
+                                        onChange={(e) => {
+                                            setUsePerSymbolImpacts(e.target.checked);
+                                            if (e.target.checked) {
+                                                setAffectAllSymbols(false);
+                                                setAffectedSymbols([]);
+                                            }
+                                        }}
+                                        className="w-4 h-4 rounded border-border"
+                                    />
+                                    <label htmlFor="usePerSymbolImpacts" className="text-sm">
+                                        Different impact per symbol (e.g., HUBL +12%, EPBL +10%)
+                                    </label>
+                                </div>
+
+                                {/* Per-Symbol Impacts UI */}
+                                {usePerSymbolImpacts && (
+                                    <div className="border border-border rounded-lg p-4 space-y-3">
+                                        <label className="label">Symbol-Specific Impacts</label>
+
+                                        {/* Add symbol impact form */}
+                                        <div className="flex gap-2">
+                                            <select
+                                                value={selectedImpactSymbolId}
+                                                onChange={(e) => setSelectedImpactSymbolId(e.target.value)}
+                                                className="input flex-1"
+                                            >
+                                                <option value="">Select symbol...</option>
+                                                {symbols?.filter((s: any) => s.isActive && !symbolImpacts[s.id]).map((symbol: any) => (
+                                                    <option key={symbol.id} value={symbol.id}>
+                                                        {symbol.symbol} - {symbol.companyName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <input
+                                                type="number"
+                                                value={selectedImpactValue}
+                                                onChange={(e) => setSelectedImpactValue(e.target.value)}
+                                                placeholder="Impact %"
+                                                className="input w-24"
+                                                step="0.1"
+                                            />
+                                            <button
+                                                onClick={addSymbolImpact}
+                                                disabled={!selectedImpactSymbolId || !selectedImpactValue}
+                                                className="btn-secondary"
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                            </button>
+                                        </div>
+
+                                        <p className="text-xs text-muted-foreground">
+                                            Enter positive values for price increase, negative for decrease (e.g., 12 for +12%, -5 for -5%)
+                                        </p>
+
+                                        {/* Added symbol impacts */}
+                                        {Object.keys(symbolImpacts).length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                {Object.entries(symbolImpacts).map(([symbolId, impact]) => (
+                                                    <span
+                                                        key={symbolId}
+                                                        className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${Number(impact) >= 0 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}
+                                                    >
+                                                        {getSymbolTicker(symbolId)}: {Number(impact) >= 0 ? '+' : ''}{impact}%
+                                                        <button
+                                                            onClick={() => removeSymbolImpact(symbolId)}
+                                                            className="hover:opacity-75"
+                                                        >
+                                                            <X className="h-3 w-3" />
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
                                 {/* Affected Symbols */}
-                                {!affectAllSymbols && (
+                                {!affectAllSymbols && !usePerSymbolImpacts && (
                                     <div>
                                         <label className="label">Affected Symbols</label>
 

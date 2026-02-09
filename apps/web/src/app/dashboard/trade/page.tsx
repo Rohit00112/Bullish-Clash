@@ -80,11 +80,11 @@ export default function TradePage() {
 
     const isCompetitionActive = competition?.status === 'active';
 
-    // Fetch symbols first so we can restore state
+    // Fetch symbols first so we can restore state (only tradeable symbols)
     const { data: symbolsData } = useQuery({
-        queryKey: ['symbols'],
+        queryKey: ['symbols-tradeable'],
         queryFn: async () => {
-            const res = await symbolsApi.getAll();
+            const res = await symbolsApi.getTradeable();
             return res.data;
         },
     });

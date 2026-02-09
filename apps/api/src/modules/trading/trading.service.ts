@@ -116,6 +116,21 @@ export class TradingService {
             throw new BadRequestException('Symbol not found or price not available');
         }
 
+        // Check if symbol is tradeable (went through bidding or listed by admin)
+        const symbol = await this.db.query.symbols.findFirst({
+            where: eq(schema.symbols.id, dto.symbolId),
+        });
+
+        if (!symbol) {
+            throw new BadRequestException('Symbol not found');
+        }
+
+        if (!symbol.isTradeable) {
+            throw new BadRequestException(
+                `${symbol.symbol} is not available for trading. Only symbols that went through the bidding process or are admin-listed can be traded.`
+            );
+        }
+
         const currentPrice = parseFloat(latestPrice.price);
         const orderType = dto.type || 'market';
         const orderPrice = orderType === 'limit' ? dto.price! : currentPrice;

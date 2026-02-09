@@ -3,14 +3,26 @@
 // ============================================================
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsBoolean, IsOptional, IsArray, IsEnum, IsDateString } from 'class-validator';
+import { IsString, IsNumber, IsBoolean, IsOptional, IsArray, IsEnum, IsDateString, IsObject, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+// Per-symbol impact definition
+export class SymbolImpactDto {
+    @ApiProperty({ example: 'symbol-uuid', description: 'Symbol ID' })
+    @IsString()
+    symbolId: string;
+
+    @ApiProperty({ example: 12, description: 'Expected impact percentage for this symbol' })
+    @IsNumber()
+    expectedImpact: number;
+}
 
 export class CreateEventDto {
-    @ApiProperty({ example: 'NABIL Q3 Earnings Beat Expectations' })
+    @ApiProperty({ example: 'Government Infrastructure & Banking Reform Policy' })
     @IsString()
     title: string;
 
-    @ApiProperty({ required: false, example: 'NABIL reported 25% growth in net profit...' })
+    @ApiProperty({ required: false, example: 'Strongly positive for Commercial Banks...' })
     @IsOptional()
     @IsString()
     description?: string;
@@ -28,7 +40,7 @@ export class CreateEventDto {
 
     @ApiProperty({
         example: 5.0,
-        description: 'The magnitude of change (e.g., 5.0 for +5% or +5 NPR depending on type)'
+        description: 'Default magnitude of change (used when symbolImpacts not specified)'
     })
     @IsNumber()
     magnitude: number;
@@ -42,6 +54,15 @@ export class CreateEventDto {
     @IsArray()
     @IsString({ each: true })
     affectedSymbols?: string[];
+
+    @ApiProperty({
+        required: false,
+        description: 'Per-symbol expected impact percentages (e.g., HUBL: +12%, EPBL: +10%)',
+        example: { 'symbol-uuid-1': 12, 'symbol-uuid-2': 10, 'symbol-uuid-3': 8 }
+    })
+    @IsOptional()
+    @IsObject()
+    symbolImpacts?: Record<string, number>;
 
     @ApiProperty({
         required: false,
@@ -71,12 +92,12 @@ export class CreateEventDto {
 }
 
 export class UpdateEventDto {
-    @ApiProperty({ required: false, example: 'NABIL Q3 Earnings Beat Expectations' })
+    @ApiProperty({ required: false, example: 'Government Infrastructure & Banking Reform Policy' })
     @IsOptional()
     @IsString()
     title?: string;
 
-    @ApiProperty({ required: false, example: 'NABIL reported 25% growth in net profit...' })
+    @ApiProperty({ required: false, example: 'Strongly positive for Commercial Banks...' })
     @IsOptional()
     @IsString()
     description?: string;
@@ -104,6 +125,15 @@ export class UpdateEventDto {
     @IsArray()
     @IsString({ each: true })
     affectedSymbols?: string[];
+
+    @ApiProperty({
+        required: false,
+        description: 'Per-symbol expected impact percentages',
+        example: { 'symbol-uuid-1': 12, 'symbol-uuid-2': 10 }
+    })
+    @IsOptional()
+    @IsObject()
+    symbolImpacts?: Record<string, number>;
 
     @ApiProperty({ required: false })
     @IsOptional()
