@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, TrendingUp, TrendingDown, DollarSign, Wallet, History, AlertCircle } from 'lucide-react';
-import { biddingApi, portfolioApi } from '@/lib/api';
+import { biddingApi, symbolsApi, portfolioApi } from '@/lib/api';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,11 +23,11 @@ export function BiddingPanel() {
     const [bidQuantity, setBidQuantity] = useState('');
     const [bidPrice, setBidPrice] = useState('');
 
-    // Fetch Symbols (IPO stocks available for bidding)
+    // Fetch ALL symbols for bidding (every symbol is available to bid on)
     const { data: symbolsData, isLoading: symbolsLoading } = useQuery({
-        queryKey: ['biddable-symbols'],
+        queryKey: ['symbols'],
         queryFn: async () => {
-            const res = await biddingApi.getBiddableSymbols();
+            const res = await symbolsApi.getAll();
             return res.data;
         },
     });
