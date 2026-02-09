@@ -186,7 +186,8 @@ export default function ReportsPage() {
                     <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
             ) : reports.length > 0 ? (
-                Object.entries(groupedByType).map(([type, typeReports]: [string, any[]]) => {
+                Object.entries(groupedByType).map(([type, typeReportsRaw]) => {
+                    const typeReports = typeReportsRaw as any[];
                     const Icon = REPORT_TYPE_ICONS[type as keyof typeof REPORT_TYPE_ICONS] || Briefcase;
                     const label = REPORT_TYPE_LABELS[type as keyof typeof REPORT_TYPE_LABELS] || 'General';
                     const headers = getKeyIndicatorHeaders(type);
