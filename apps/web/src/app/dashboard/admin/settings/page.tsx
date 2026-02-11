@@ -18,6 +18,8 @@ interface CompetitionSettings {
     maxPositionSize: number;
     tradingHoursStart: string;
     tradingHoursEnd: string;
+    biddingHoursStart: string;
+    biddingHoursEnd: string;
     startTime: string;
     endTime: string;
     isActive: boolean;
