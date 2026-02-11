@@ -64,15 +64,20 @@ export class CreateCompetitionDto {
     @IsString()
     tradingHoursEnd?: string;
 
+    @ApiProperty({ required: false, example: '09:00', description: 'Bidding hours start time (HH:mm)' })
+    @IsOptional()
+    @IsString()
+    biddingHoursStart?: string;
+
+    @ApiProperty({ required: false, example: '11:00', description: 'Bidding hours end time (HH:mm)' })
+    @IsOptional()
+    @IsString()
+    biddingHoursEnd?: string;
+
     @ApiProperty({ required: false, default: false })
     @IsOptional()
     @IsBoolean()
     isDefault?: boolean;
-
-    // @ApiProperty({ required: false, default: false })
-    // @IsOptional()
-    // @IsBoolean()
-    // isLeaderboardHidden?: boolean;
 }
 
 export class UpdateCompetitionDto {
@@ -141,13 +146,18 @@ export class UpdateCompetitionDto {
     @IsString()
     tradingHoursEnd?: string;
 
+    @ApiProperty({ required: false, example: '09:00', description: 'Bidding hours start time (HH:mm)' })
+    @IsOptional()
+    @IsString()
+    biddingHoursStart?: string;
+
+    @ApiProperty({ required: false, example: '11:00', description: 'Bidding hours end time (HH:mm)' })
+    @IsOptional()
+    @IsString()
+    biddingHoursEnd?: string;
+
     @ApiProperty({ required: false })
     @IsOptional()
     @IsBoolean()
     isDefault?: boolean;
-
-    // @ApiProperty({ required: false })
-    // @IsOptional()
-    // @IsBoolean()
-    // isLeaderboardHidden?: boolean;
 }

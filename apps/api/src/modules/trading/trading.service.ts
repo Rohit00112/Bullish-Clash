@@ -61,6 +61,29 @@ export class TradingService {
             throw new BadRequestException('Trading is only allowed during competition hours');
         }
 
+        // Enforce daily trading hours
+        const nepaliTime = now.toLocaleTimeString('en-US', {
+            timeZone: 'Asia/Kathmandu',
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+        const [curH, curM] = nepaliTime.split(':').map(Number);
+        const currentMinutes = curH * 60 + curM;
+
+        const tradingStart = competition.tradingHoursStart || '11:00';
+        const tradingEnd = competition.tradingHoursEnd || '15:00';
+        const [startH, startM] = tradingStart.split(':').map(Number);
+        const [endH, endM] = tradingEnd.split(':').map(Number);
+        const startMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+
+        if (currentMinutes < startMinutes || currentMinutes >= endMinutes) {
+            throw new BadRequestException(
+                `Trading is only allowed between ${tradingStart} - ${tradingEnd} Nepal time. Current time: ${nepaliTime}`
+            );
+        }
+
         // Rate limiting
         const rateLimitKey = `order_rate:${userId}`;
         const orderCount = await this.redis.incr(rateLimitKey);

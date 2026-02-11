@@ -37,6 +37,8 @@ export default function AdminSettingsPage() {
     const [maxPositionSize, setMaxPositionSize] = useState('');
     const [tradingHoursStart, setTradingHoursStart] = useState('');
     const [tradingHoursEnd, setTradingHoursEnd] = useState('');
+    const [biddingHoursStart, setBiddingHoursStart] = useState('');
+    const [biddingHoursEnd, setBiddingHoursEnd] = useState('');
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
 
@@ -88,6 +90,8 @@ export default function AdminSettingsPage() {
             setMaxPositionSize(settings.maxPositionSize?.toString() || '25');
             setTradingHoursStart(settings.tradingHoursStart || '11:00');
             setTradingHoursEnd(settings.tradingHoursEnd || '15:00');
+            setBiddingHoursStart(settings.biddingHoursStart || '09:00');
+            setBiddingHoursEnd(settings.biddingHoursEnd || '11:00');
             if (settings.startTime) {
                 setStartTime(formatDateForInput(settings.startTime));
             }
@@ -193,6 +197,8 @@ export default function AdminSettingsPage() {
             maxPositionSize: parseFloat(maxPositionSize),
             tradingHoursStart,
             tradingHoursEnd,
+            biddingHoursStart,
+            biddingHoursEnd,
             startTime: startTime ? new Date(startTime).toISOString() : undefined,
             endTime: endTime ? new Date(endTime).toISOString() : undefined,
         });
@@ -226,20 +232,20 @@ export default function AdminSettingsPage() {
                         <p className="font-medium">Current Status</p>
                         <div className="flex items-center gap-2 mt-1">
                             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${settings?.status === 'active'
-                                    ? 'bg-green-500/20 text-green-500'
-                                    : settings?.status === 'paused'
-                                        ? 'bg-yellow-500/20 text-yellow-500'
-                                        : settings?.status === 'ended'
-                                            ? 'bg-red-500/20 text-red-500'
-                                            : 'bg-muted text-muted-foreground'
+                                ? 'bg-green-500/20 text-green-500'
+                                : settings?.status === 'paused'
+                                    ? 'bg-yellow-500/20 text-yellow-500'
+                                    : settings?.status === 'ended'
+                                        ? 'bg-red-500/20 text-red-500'
+                                        : 'bg-muted text-muted-foreground'
                                 }`}>
                                 <span className={`w-2 h-2 rounded-full ${settings?.status === 'active'
-                                        ? 'bg-green-500 animate-pulse'
-                                        : settings?.status === 'paused'
-                                            ? 'bg-yellow-500'
-                                            : settings?.status === 'ended'
-                                                ? 'bg-red-500'
-                                                : 'bg-muted-foreground'
+                                    ? 'bg-green-500 animate-pulse'
+                                    : settings?.status === 'paused'
+                                        ? 'bg-yellow-500'
+                                        : settings?.status === 'ended'
+                                            ? 'bg-red-500'
+                                            : 'bg-muted-foreground'
                                     }`} />
                                 {settings?.status === 'active' ? 'Active' :
                                     settings?.status === 'paused' ? 'Paused' :
@@ -450,7 +456,32 @@ export default function AdminSettingsPage() {
                     </div>
                 </div>
                 <p className="text-xs text-muted-foreground -mt-4">
-                    Trading allowed between {tradingHoursStart || '11:00'} - {tradingHoursEnd || '15:00'} (Nepal time)
+                    Trading allowed between {tradingHoursStart || '11:00'} - {tradingHoursEnd || '15:00'} (Nepal time). Trading will auto-stop when time ends.
+                </p>
+
+                {/* Bidding Hours */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="label">Bidding Hours Start</label>
+                        <input
+                            type="time"
+                            value={biddingHoursStart}
+                            onChange={(e) => setBiddingHoursStart(e.target.value)}
+                            className="input w-full"
+                        />
+                    </div>
+                    <div>
+                        <label className="label">Bidding Hours End</label>
+                        <input
+                            type="time"
+                            value={biddingHoursEnd}
+                            onChange={(e) => setBiddingHoursEnd(e.target.value)}
+                            className="input w-full"
+                        />
+                    </div>
+                </div>
+                <p className="text-xs text-muted-foreground -mt-4">
+                    Bidding allowed between {biddingHoursStart || '09:00'} - {biddingHoursEnd || '11:00'} (Nepal time). Bidding will auto-stop and bids will be processed when time ends.
                 </p>
 
                 {/* Competition Duration */}

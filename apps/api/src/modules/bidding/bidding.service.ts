@@ -50,7 +50,31 @@ export class BiddingService {
             throw new BadRequestException(`Bidding is not active (Status: ${competition.status})`);
         }
 
-        // 3. Verify symbol exists
+        // 3. Enforce bidding hours
+        const now = new Date();
+        const nepaliTime = now.toLocaleTimeString('en-US', {
+            timeZone: 'Asia/Kathmandu',
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+        const [curH, curM] = nepaliTime.split(':').map(Number);
+        const currentMinutes = curH * 60 + curM;
+
+        const biddingStart = competition.biddingHoursStart || '09:00';
+        const biddingEnd = competition.biddingHoursEnd || '11:00';
+        const [startH, startM] = biddingStart.split(':').map(Number);
+        const [endH, endM] = biddingEnd.split(':').map(Number);
+        const startMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+
+        if (currentMinutes < startMinutes || currentMinutes >= endMinutes) {
+            throw new BadRequestException(
+                `Bidding is only allowed between ${biddingStart} - ${biddingEnd} Nepal time. Current time: ${nepaliTime}`
+            );
+        }
+
+        // 4. Verify symbol exists
         const symbol = await this.db.query.symbols.findFirst({
             where: eq(schema.symbols.id, dto.symbolId),
         });
@@ -59,7 +83,7 @@ export class BiddingService {
             throw new NotFoundException('Symbol not found');
         }
 
-        // 4. Validate bid price against floor price
+        // 5. Validate bid price against floor price
         // Participants CANNOT bid below floor price, but CAN bid higher
         const floorPrice = symbol.floorPrice ? Number(symbol.floorPrice) : Number(symbol.basePrice);
         if (dto.price < floorPrice) {
@@ -68,7 +92,7 @@ export class BiddingService {
             );
         }
 
-        // 5. Check user balance (Total Cost = Price * Quantity)
+        // 6. Check user balance (Total Cost = Price * Quantity)
         const totalCost = dto.price * dto.quantity;
 
         const portfolio = await this.db.query.portfolios.findFirst({
@@ -86,7 +110,7 @@ export class BiddingService {
             throw new BadRequestException('Insufficient cash balance');
         }
 
-        // 5. Place Bid (Transaction)
+        // 7. Place Bid (Transaction)
         // Note: For simplicity, we deduct cash immediately (escrow)
         // If bid is rejected/partial, we refund.
 

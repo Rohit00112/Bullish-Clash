@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2, TrendingUp, TrendingDown, DollarSign, Wallet, History, AlertCircle } from 'lucide-react';
-import { biddingApi, symbolsApi, portfolioApi } from '@/lib/api';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import { Loader2, TrendingUp, TrendingDown, DollarSign, Wallet, History, AlertCircle, Clock } from 'lucide-react';
+import { biddingApi, symbolsApi, portfolioApi, competitionApi } from '@/lib/api';
+import { formatCurrency, formatNumber, getCountdown } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 interface Symbol {
@@ -22,6 +22,32 @@ export function BiddingPanel() {
     const [selectedSymbol, setSelectedSymbol] = useState<Symbol | null>(null);
     const [bidQuantity, setBidQuantity] = useState('');
     const [bidPrice, setBidPrice] = useState('');
+    const [biddingCountdown, setBiddingCountdown] = useState({ hours: 0, minutes: 0, seconds: 0, total: 0 });
+
+    // Fetch competition stats for bidding hours
+    const { data: competition } = useQuery({
+        queryKey: ['competition-stats'],
+        queryFn: async () => {
+            const res = await competitionApi.getStats();
+            return res.data;
+        },
+        refetchInterval: 30000,
+    });
+
+    // Bidding countdown
+    useEffect(() => {
+        if (!competition || competition.status !== 'bidding') return;
+
+        const interval = setInterval(() => {
+            const biddingEnd = competition.biddingHoursEnd || '11:00';
+            const now = new Date();
+            const nepaliDateStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kathmandu' });
+            const target = new Date(`${nepaliDateStr}T${biddingEnd}:00+05:45`);
+            setBiddingCountdown(getCountdown(target));
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [competition?.status, competition?.biddingHoursEnd]);
 
     // Fetch ALL symbols for bidding (every symbol is available to bid on)
     const { data: symbolsData, isLoading: symbolsLoading } = useQuery({
@@ -95,15 +121,30 @@ export function BiddingPanel() {
     return (
         <div className="space-y-6">
             <div className="card border-blue-500/20 bg-blue-500/5">
-                <div className="flex items-start gap-4">
-                    <AlertCircle className="h-6 w-6 text-blue-500 mt-1" />
-                    <div>
-                        <h2 className="text-xl font-bold text-blue-500">IPO Bidding Phase</h2>
-                        <p className="text-muted-foreground mt-1">
-                            The competition is currently in the bidding phase. You can place bids for stocks before trading begins.
-                            Successful bids will be allocated to your portfolio when trading starts.
-                        </p>
+                <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                        <AlertCircle className="h-6 w-6 text-blue-500 mt-1" />
+                        <div>
+                            <h2 className="text-xl font-bold text-blue-500">IPO Bidding Phase</h2>
+                            <p className="text-muted-foreground mt-1">
+                                The competition is currently in the bidding phase. You can place bids for stocks before trading begins.
+                                Successful bids will be allocated to your portfolio when trading starts.
+                            </p>
+                        </div>
                     </div>
+                    {biddingCountdown.total > 0 && (
+                        <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 rounded-lg px-4 py-2 shrink-0">
+                            <Clock className="h-5 w-5 text-blue-500" />
+                            <div>
+                                <p className="text-xs text-muted-foreground">Bidding ends in</p>
+                                <p className="font-mono font-bold text-lg text-blue-500">
+                                    {biddingCountdown.hours.toString().padStart(2, '0')}:
+                                    {biddingCountdown.minutes.toString().padStart(2, '0')}:
+                                    {biddingCountdown.seconds.toString().padStart(2, '0')}
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

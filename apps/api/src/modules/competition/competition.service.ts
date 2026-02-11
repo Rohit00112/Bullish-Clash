@@ -97,6 +97,8 @@ export class CompetitionService {
             endTime: new Date(dto.endTime),
             tradingHoursStart: dto.tradingHoursStart ?? '11:00',
             tradingHoursEnd: dto.tradingHoursEnd ?? '15:00',
+            biddingHoursStart: dto.biddingHoursStart ?? '09:00',
+            biddingHoursEnd: dto.biddingHoursEnd ?? '11:00',
             isDefault: dto.isDefault ?? false,
         }).returning();
 
@@ -126,6 +128,8 @@ export class CompetitionService {
         if (dto.endTime) updateData.endTime = new Date(dto.endTime);
         if (dto.tradingHoursStart !== undefined) updateData.tradingHoursStart = dto.tradingHoursStart;
         if (dto.tradingHoursEnd !== undefined) updateData.tradingHoursEnd = dto.tradingHoursEnd;
+        if (dto.biddingHoursStart !== undefined) updateData.biddingHoursStart = dto.biddingHoursStart;
+        if (dto.biddingHoursEnd !== undefined) updateData.biddingHoursEnd = dto.biddingHoursEnd;
         if (dto.isDefault !== undefined) updateData.isDefault = dto.isDefault;
 
         const [updated] = await this.db.update(schema.competitions)
@@ -259,6 +263,10 @@ export class CompetitionService {
             totalVolume,
             startTime: competition.startTime,
             endTime: competition.endTime,
+            tradingHoursStart: competition.tradingHoursStart || '11:00',
+            tradingHoursEnd: competition.tradingHoursEnd || '15:00',
+            biddingHoursStart: competition.biddingHoursStart || '09:00',
+            biddingHoursEnd: competition.biddingHoursEnd || '11:00',
             remainingTimeMs: remainingMs,
             remainingTimeFormatted: this.formatRemainingTime(remainingMs),
         };

@@ -5,22 +5,42 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-// Format number as NPR currency
-export function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-NP', {
-        style: 'currency',
-        currency: 'NPR',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(amount).replace('NPR', 'रू');
+// Format number with Nepali comma grouping (last 3, then groups of 2)
+// e.g., 1000000 => 10,00,000
+function formatNepaliNumber(num: number, decimals = 2): string {
+    const isNegative = num < 0;
+    const abs = Math.abs(num);
+    const fixed = abs.toFixed(decimals);
+    const [intPart, decPart] = fixed.split('.');
+
+    if (intPart.length <= 3) {
+        const formatted = decPart ? `${intPart}.${decPart}` : intPart;
+        return isNegative ? `-${formatted}` : formatted;
+    }
+
+    // Last 3 digits
+    const last3 = intPart.slice(-3);
+    let remaining = intPart.slice(0, -3);
+
+    // Group remaining digits in pairs from right
+    const groups: string[] = [];
+    while (remaining.length > 0) {
+        groups.unshift(remaining.slice(-2));
+        remaining = remaining.slice(0, -2);
+    }
+
+    const formatted = `${groups.join(',')},${last3}` + (decPart ? `.${decPart}` : '');
+    return isNegative ? `-${formatted}` : formatted;
 }
 
-// Format number with commas
+// Format number as NPR currency
+export function formatCurrency(amount: number): string {
+    return `रू ${formatNepaliNumber(amount, 2)}`;
+}
+
+// Format number with commas (Nepali grouping)
 export function formatNumber(num: number, decimals = 2): string {
-    return new Intl.NumberFormat('en-IN', {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
-    }).format(num);
+    return formatNepaliNumber(num, decimals);
 }
 
 // Format percentage
@@ -32,16 +52,18 @@ export function formatPercent(value: number, includeSign = true): string {
 
 // Format large numbers (K, L, Cr for Nepal)
 export function formatCompact(num: number): string {
-    if (num >= 10000000) {
-        return `${(num / 10000000).toFixed(2)} Cr`;
+    const abs = Math.abs(num);
+    const sign = num < 0 ? '-' : '';
+    if (abs >= 10000000) {
+        return `${sign}${(abs / 10000000).toFixed(2)} Cr`;
     }
-    if (num >= 100000) {
-        return `${(num / 100000).toFixed(2)} L`;
+    if (abs >= 100000) {
+        return `${sign}${(abs / 100000).toFixed(2)} L`;
     }
-    if (num >= 1000) {
-        return `${(num / 1000).toFixed(2)} K`;
+    if (abs >= 1000) {
+        return `${sign}${(abs / 1000).toFixed(2)} K`;
     }
-    return num.toFixed(2);
+    return formatNepaliNumber(num, 2);
 }
 
 // Get price change color class

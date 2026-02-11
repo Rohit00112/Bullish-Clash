@@ -13,6 +13,7 @@ export default function DashboardPage() {
     const { user } = useAuthStore();
     const { setPrices, getAllPrices } = usePriceStore();
     const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0, total: 0 });
+    const [sessionCountdown, setSessionCountdown] = useState({ hours: 0, minutes: 0, seconds: 0, total: 0 });
 
     // Fetch portfolio
     const { data: portfolio } = useQuery({
@@ -72,6 +73,38 @@ export default function DashboardPage() {
         return () => clearInterval(interval);
     }, [competition?.endTime]);
 
+    // Session (bidding/trading) countdown
+    useEffect(() => {
+        if (!competition) return;
+
+        const getSessionEnd = () => {
+            let endTime: string | undefined;
+            if (competition.status === 'bidding') {
+                endTime = competition.biddingHoursEnd || '11:00';
+            } else if (competition.status === 'active') {
+                endTime = competition.tradingHoursEnd || '15:00';
+            }
+            if (!endTime) return null;
+
+            // Build a Date for today at the session end time in Nepal timezone
+            const now = new Date();
+            const nepaliDateStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kathmandu' }); // YYYY-MM-DD
+            const target = new Date(`${nepaliDateStr}T${endTime}:00+05:45`);
+            return target;
+        };
+
+        const interval = setInterval(() => {
+            const target = getSessionEnd();
+            if (!target) {
+                setSessionCountdown({ hours: 0, minutes: 0, seconds: 0, total: 0 });
+                return;
+            }
+            setSessionCountdown(getCountdown(target));
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [competition?.status, competition?.biddingHoursEnd, competition?.tradingHoursEnd]);
+
     const prices = getAllPrices();
     const topGainers = [...prices].sort((a, b) => b.changePercent - a.changePercent).slice(0, 5);
     const topLosers = [...prices].sort((a, b) => a.changePercent - b.changePercent).slice(0, 5);
@@ -95,6 +128,27 @@ export default function DashboardPage() {
                                 {countdown.hours.toString().padStart(2, '0')}:
                                 {countdown.minutes.toString().padStart(2, '0')}:
                                 {countdown.seconds.toString().padStart(2, '0')}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Session Timer (Bidding/Trading) */}
+                {competition && sessionCountdown.total > 0 && (competition.status === 'bidding' || competition.status === 'active') && (
+                    <div className={`card flex items-center gap-3 ${competition.status === 'bidding'
+                            ? 'bg-blue-500/10 border-blue-500/30'
+                            : 'bg-green-500/10 border-green-500/30'
+                        }`}>
+                        <Clock className={`h-5 w-5 ${competition.status === 'bidding' ? 'text-blue-500' : 'text-green-500'}`} />
+                        <div>
+                            <p className="text-xs text-muted-foreground">
+                                {competition.status === 'bidding' ? 'Bidding ends in' : 'Trading ends in'}
+                            </p>
+                            <p className={`font-mono font-bold text-lg ${competition.status === 'bidding' ? 'text-blue-500' : 'text-green-500'
+                                }`}>
+                                {sessionCountdown.hours.toString().padStart(2, '0')}:
+                                {sessionCountdown.minutes.toString().padStart(2, '0')}:
+                                {sessionCountdown.seconds.toString().padStart(2, '0')}
                             </p>
                         </div>
                     </div>

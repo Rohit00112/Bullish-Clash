@@ -51,6 +51,10 @@ export const competitions = pgTable('competitions', {
     tradingHoursStart: varchar('trading_hours_start', { length: 10 }).default('11:00'),
     tradingHoursEnd: varchar('trading_hours_end', { length: 10 }).default('15:00'),
 
+    // Bidding hours (e.g., '09:00', '11:00')
+    biddingHoursStart: varchar('bidding_hours_start', { length: 10 }).default('09:00'),
+    biddingHoursEnd: varchar('bidding_hours_end', { length: 10 }).default('11:00'),
+
     // Metadata
     isDefault: boolean('is_default').notNull().default(false),
     isLeaderboardHidden: boolean('is_leaderboard_hidden').notNull().default(false),
