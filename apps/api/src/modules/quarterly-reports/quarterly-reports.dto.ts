@@ -2,7 +2,7 @@
 // Bullish Clash - Quarterly Reports DTOs
 // ============================================================
 
-import { IsString, IsOptional, IsNumber, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsEnum, IsBoolean, IsDateString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateBankReportDto {
@@ -95,4 +95,20 @@ export class CreateQuarterlyReportDto {
     @ApiPropertyOptional() @IsOptional() @IsNumber() grossProfitMargin?: number;
     @ApiPropertyOptional() @IsOptional() @IsNumber() netProfitMargin?: number;
     @ApiPropertyOptional() @IsOptional() @IsNumber() currentRatio?: number;
+
+    // Market Impact - works like events system
+    @ApiPropertyOptional({ description: 'Price impact magnitude (e.g., 5.0 for +5%)' })
+    @IsOptional() @IsNumber() impactMagnitude?: number;
+
+    @ApiPropertyOptional({ enum: ['positive', 'negative', 'neutral'], description: 'Impact direction' })
+    @IsOptional() @IsEnum(['positive', 'negative', 'neutral']) impactType?: 'positive' | 'negative' | 'neutral';
+
+    @ApiPropertyOptional({ enum: ['percentage', 'absolute'], description: 'How to apply impact' })
+    @IsOptional() @IsEnum(['percentage', 'absolute']) priceUpdateType?: 'percentage' | 'absolute';
+
+    @ApiPropertyOptional({ description: 'Execute impact immediately on publish' })
+    @IsOptional() @IsBoolean() executeNow?: boolean;
+
+    @ApiPropertyOptional({ description: 'Schedule impact for later (ISO date string)' })
+    @IsOptional() @IsDateString() scheduledAt?: string;
 }

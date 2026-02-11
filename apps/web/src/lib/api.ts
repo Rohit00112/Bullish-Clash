@@ -361,4 +361,8 @@ export const quarterlyReportsApi = {
     // Admin: Delete a report
     delete: (reportType: string, id: string) =>
         api.delete(`/quarterly-reports/${reportType}/${id}`),
+
+    // Admin: Execute market impact of a report
+    execute: (reportType: string, id: string) =>
+        api.post(`/quarterly-reports/${reportType}/${id}/execute`),
 };

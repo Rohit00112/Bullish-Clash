@@ -14,6 +14,9 @@ import {
     ChevronDown,
     ChevronUp,
     Filter,
+    Zap,
+    CheckCircle2,
+    Clock,
 } from 'lucide-react';
 import { quarterlyReportsApi, symbolsApi } from '@/lib/api';
 
@@ -212,6 +215,7 @@ export default function ReportsPage() {
                                             ))}
                                             <th className="px-4 py-3 text-sm font-medium text-muted-foreground text-right">Revenue</th>
                                             <th className="px-4 py-3 text-sm font-medium text-muted-foreground text-right">Net Profit</th>
+                                            <th className="px-4 py-3 text-sm font-medium text-muted-foreground text-right">Impact</th>
                                             <th className="px-4 py-3 w-8"></th>
                                         </tr>
                                     </thead>
@@ -244,6 +248,26 @@ export default function ReportsPage() {
                                                     </td>
                                                     <td className="px-4 py-3 text-right font-mono text-sm">
                                                         {formatLargeNumber(report.netProfit)}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right text-sm">
+                                                        {report.impactMagnitude ? (
+                                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${report.impactType === 'positive' ? 'bg-green-500/10 text-green-500' :
+                                                                    report.impactType === 'negative' ? 'bg-red-500/10 text-red-500' :
+                                                                        'bg-gray-500/10 text-gray-500'
+                                                                }`}>
+                                                                {report.isExecuted ? (
+                                                                    <CheckCircle2 className="h-3 w-3" />
+                                                                ) : report.scheduledAt ? (
+                                                                    <Clock className="h-3 w-3" />
+                                                                ) : (
+                                                                    <Zap className="h-3 w-3" />
+                                                                )}
+                                                                {report.impactType === 'negative' ? '-' : '+'}{report.impactMagnitude}
+                                                                {report.priceUpdateType === 'percentage' ? '%' : ''}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-muted-foreground">-</span>
+                                                        )}
                                                     </td>
                                                     <td className="px-4 py-3 text-right">
                                                         {isExpanded ? (

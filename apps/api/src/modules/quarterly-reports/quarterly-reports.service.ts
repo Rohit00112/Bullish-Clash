@@ -2,11 +2,15 @@
 // Bullish Clash - Quarterly Reports Service
 // ============================================================
 
-import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
-import { eq, and, desc } from 'drizzle-orm';
+import { Injectable, Inject, NotFoundException, BadRequestException, forwardRef } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { eq, and, desc, lte } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../../database/schema';
 import { CreateQuarterlyReportDto } from './quarterly-reports.dto';
+import { PricesService, PriceUpdate } from '../prices/prices.service';
+import { TradingGateway } from '../websocket/trading.gateway';
+import { LeaderboardService } from '../leaderboard/leaderboard.service';
 
 // Map sectors to report types
 const SECTOR_REPORT_TYPE: Record<string, 'bank' | 'hydropower' | 'generic'> = {
@@ -21,6 +25,9 @@ export class QuarterlyReportsService {
     constructor(
         @Inject('DATABASE_CONNECTION')
         private db: NodePgDatabase<typeof schema>,
+        @Inject(forwardRef(() => PricesService)) private readonly pricesService: PricesService,
+        @Inject(forwardRef(() => TradingGateway)) private readonly tradingGateway: TradingGateway,
+        @Inject(forwardRef(() => LeaderboardService)) private readonly leaderboardService: LeaderboardService,
     ) { }
 
     /**
@@ -45,14 +52,25 @@ export class QuarterlyReportsService {
         // Auto-detect report type from sector if not explicitly set
         const reportType = dto.reportType || this.getReportTypeForSector(symbol.sector);
 
+        let report: any;
         switch (reportType) {
             case 'bank':
-                return this.createBankReport(dto);
+                report = await this.createBankReport(dto);
+                break;
             case 'hydropower':
-                return this.createHydropowerReport(dto);
+                report = await this.createHydropowerReport(dto);
+                break;
             default:
-                return this.createGenericReport(dto);
+                report = await this.createGenericReport(dto);
+                break;
         }
+
+        // Execute market impact immediately if requested
+        if (dto.executeNow && dto.impactMagnitude) {
+            return this.executeReportImpact(report.reportType, report.id);
+        }
+
+        return report;
     }
 
     private async createBankReport(dto: CreateQuarterlyReportDto) {
@@ -80,6 +98,10 @@ export class QuarterlyReportsService {
             grossProfit: dto.grossProfit?.toString(),
             netProfit: dto.netProfit?.toString(),
             earningsPerShare: dto.earningsPerShare?.toString(),
+            impactMagnitude: dto.impactMagnitude?.toString(),
+            impactType: dto.impactType as any,
+            priceUpdateType: dto.priceUpdateType as any,
+            scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
         }).returning();
 
         return { ...report, reportType: 'bank' };
@@ -109,6 +131,10 @@ export class QuarterlyReportsService {
             grossProfit: dto.grossProfit?.toString(),
             netProfit: dto.netProfit?.toString(),
             generationMWh: dto.generationMWh?.toString(),
+            impactMagnitude: dto.impactMagnitude?.toString(),
+            impactType: dto.impactType as any,
+            priceUpdateType: dto.priceUpdateType as any,
+            scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
         }).returning();
 
         return { ...report, reportType: 'hydropower' };
@@ -140,6 +166,10 @@ export class QuarterlyReportsService {
             returnOnAssets: dto.returnOnAssets?.toString(),
             debtToEquity: dto.debtToEquity?.toString(),
             currentRatio: dto.currentRatio?.toString(),
+            impactMagnitude: dto.impactMagnitude?.toString(),
+            impactType: dto.impactType as any,
+            priceUpdateType: dto.priceUpdateType as any,
+            scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
         }).returning();
 
         return { ...report, reportType: 'generic' };
@@ -310,5 +340,124 @@ export class QuarterlyReportsService {
                 break;
         }
         return { success: true, message: 'Report deleted' };
+    }
+
+    /**
+     * Execute market impact for a report (like events system)
+     */
+    async executeReportImpact(reportType: string, reportId: string) {
+        // Find the report
+        let report: any;
+        let tableRef: any;
+        switch (reportType) {
+            case 'bank':
+                report = await this.db.query.bankQuarterlyReports.findFirst({
+                    where: eq(schema.bankQuarterlyReports.id, reportId),
+                });
+                tableRef = schema.bankQuarterlyReports;
+                break;
+            case 'hydropower':
+                report = await this.db.query.hydropowerQuarterlyReports.findFirst({
+                    where: eq(schema.hydropowerQuarterlyReports.id, reportId),
+                });
+                tableRef = schema.hydropowerQuarterlyReports;
+                break;
+            default:
+                report = await this.db.query.quarterlyReports.findFirst({
+                    where: eq(schema.quarterlyReports.id, reportId),
+                });
+                tableRef = schema.quarterlyReports;
+                break;
+        }
+
+        if (!report) throw new NotFoundException('Report not found');
+        if (report.isExecuted) throw new BadRequestException('Report impact already executed');
+        if (!report.impactMagnitude) throw new BadRequestException('No market impact configured for this report');
+
+        const magnitude = parseFloat(report.impactMagnitude);
+        const priceUpdate: PriceUpdate = {
+            symbolId: report.symbolId,
+            priceUpdateType: report.priceUpdateType || 'percentage',
+            magnitude: report.impactType === 'negative' ? -magnitude : magnitude,
+        };
+
+        const results = await this.pricesService.batchUpdatePrices([priceUpdate]);
+        const result = results[0];
+
+        // Update report with execution info
+        const updateResult = await this.db.update(tableRef)
+            .set({
+                isExecuted: true,
+                executedAt: new Date(),
+                previousPrice: result?.previousPrice?.toString(),
+                newPrice: result?.newPrice?.toString(),
+                updatedAt: new Date(),
+            })
+            .where(eq(tableRef.id, reportId))
+            .returning();
+        const updated = (updateResult as any[])[0];
+
+        // Fetch symbol for notifications
+        const symbol = await this.db.query.symbols.findFirst({
+            where: eq(schema.symbols.id, report.symbolId),
+        });
+
+        // Broadcast market event notification
+        this.tradingGateway.broadcastMarketEvent({
+            eventId: reportId,
+            title: `Quarterly Report: ${symbol?.symbol || 'Unknown'} ${report.fiscalYear} ${report.quarter}`,
+            description: `Report published with ${report.impactType} impact of ${magnitude}${report.priceUpdateType === 'percentage' ? '%' : ''}`,
+            impactType: report.impactType,
+            symbolsAffected: 1,
+        });
+
+        // Invalidate leaderboard
+        await this.leaderboardService.invalidateCache();
+        this.tradingGateway.triggerLeaderboardUpdate();
+
+        return {
+            report: { ...updated, reportType },
+            result,
+            summary: {
+                symbol: symbol?.symbol,
+                previousPrice: result?.previousPrice,
+                newPrice: result?.newPrice,
+                change: result?.change,
+                changePercent: result?.changePercent,
+            },
+        };
+    }
+
+    /**
+     * Cron: Auto-execute scheduled report impacts
+     */
+    @Cron(CronExpression.EVERY_10_SECONDS)
+    async processScheduledReports() {
+        const now = new Date();
+
+        const tables = [
+            { table: schema.bankQuarterlyReports, type: 'bank' },
+            { table: schema.hydropowerQuarterlyReports, type: 'hydropower' },
+            { table: schema.quarterlyReports, type: 'generic' },
+        ];
+
+        for (const { table, type } of tables) {
+            const scheduled = await this.db.select().from(table).where(
+                and(
+                    eq(table.isExecuted, false),
+                    lte(table.scheduledAt, now),
+                ),
+            );
+
+            for (const report of scheduled) {
+                if (!report.impactMagnitude) continue;
+                try {
+                    console.log(`Executing scheduled report impact: ${type}/${report.id}`);
+                    await this.executeReportImpact(type, report.id);
+                } catch (error) {
+                    console.error(`Failed to execute scheduled report ${report.id}:`, error);
+                }
+            }
+        }
     }
 }

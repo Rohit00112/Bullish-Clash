@@ -12,8 +12,10 @@ import {
     pgEnum,
     index,
     integer,
+    boolean,
 } from 'drizzle-orm/pg-core';
 import { symbols } from './symbols';
+import { eventImpactTypeEnum, priceUpdateTypeEnum } from './events';
 
 // Quarter enum
 export const quarterEnum = pgEnum('quarter', ['Q1', 'Q2', 'Q3', 'Q4']);
@@ -47,6 +49,16 @@ export const bankQuarterlyReports = pgTable('bank_quarterly_reports', {
     netProfit: numeric('net_profit', { precision: 20, scale: 2 }),
     earningsPerShare: numeric('earnings_per_share', { precision: 15, scale: 2 }),
 
+    // Market Impact
+    impactMagnitude: numeric('impact_magnitude', { precision: 15, scale: 4 }),
+    impactType: eventImpactTypeEnum('impact_type'),
+    priceUpdateType: priceUpdateTypeEnum('price_update_type'),
+    isExecuted: boolean('is_executed').notNull().default(false),
+    scheduledAt: timestamp('scheduled_at', { withTimezone: true }),
+    executedAt: timestamp('executed_at', { withTimezone: true }),
+    previousPrice: numeric('previous_price', { precision: 15, scale: 2 }),
+    newPrice: numeric('new_price', { precision: 15, scale: 2 }),
+
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
@@ -77,6 +89,16 @@ export const hydropowerQuarterlyReports = pgTable('hydropower_quarterly_reports'
     grossProfit: numeric('gross_profit', { precision: 20, scale: 2 }),
     netProfit: numeric('net_profit', { precision: 20, scale: 2 }),
     generationMWh: numeric('generation_mwh', { precision: 15, scale: 2 }), // Power generation
+
+    // Market Impact
+    impactMagnitude: numeric('impact_magnitude', { precision: 15, scale: 4 }),
+    impactType: eventImpactTypeEnum('impact_type'),
+    priceUpdateType: priceUpdateTypeEnum('price_update_type'),
+    isExecuted: boolean('is_executed').notNull().default(false),
+    scheduledAt: timestamp('scheduled_at', { withTimezone: true }),
+    executedAt: timestamp('executed_at', { withTimezone: true }),
+    previousPrice: numeric('previous_price', { precision: 15, scale: 2 }),
+    newPrice: numeric('new_price', { precision: 15, scale: 2 }),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -111,6 +133,16 @@ export const quarterlyReports = pgTable('quarterly_reports', {
     // Leverage ratios
     debtToEquity: numeric('debt_to_equity', { precision: 8, scale: 4 }),
     currentRatio: numeric('current_ratio', { precision: 8, scale: 4 }),
+
+    // Market Impact
+    impactMagnitude: numeric('impact_magnitude', { precision: 15, scale: 4 }),
+    impactType: eventImpactTypeEnum('impact_type'),
+    priceUpdateType: priceUpdateTypeEnum('price_update_type'),
+    isExecuted: boolean('is_executed').notNull().default(false),
+    scheduledAt: timestamp('scheduled_at', { withTimezone: true }),
+    executedAt: timestamp('executed_at', { withTimezone: true }),
+    previousPrice: numeric('previous_price', { precision: 15, scale: 2 }),
+    newPrice: numeric('new_price', { precision: 15, scale: 2 }),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

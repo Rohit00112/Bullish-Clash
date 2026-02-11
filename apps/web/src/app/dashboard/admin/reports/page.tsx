@@ -12,6 +12,9 @@ import {
     Briefcase,
     ChevronDown,
     ChevronUp,
+    Zap,
+    Clock,
+    CheckCircle2,
 } from 'lucide-react';
 import { quarterlyReportsApi, symbolsApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -127,6 +130,11 @@ export default function AdminReportsPage() {
     const [quarter, setQuarter] = useState<typeof QUARTERS[number]>('Q1');
     const [formData, setFormData] = useState<Record<string, string>>({});
     const [expandedReport, setExpandedReport] = useState<string | null>(null);
+    const [impactMagnitude, setImpactMagnitude] = useState('');
+    const [impactType, setImpactType] = useState<'positive' | 'negative' | 'neutral'>('positive');
+    const [priceUpdateType, setPriceUpdateType] = useState<'percentage' | 'absolute'>('percentage');
+    const [executeNow, setExecuteNow] = useState(false);
+    const [scheduledAt, setScheduledAt] = useState('');
 
     // Fetch symbols
     const { data: symbols } = useQuery({
@@ -167,6 +175,14 @@ export default function AdminReportsPage() {
                     payload[field.key] = parseFloat(formData[field.key]);
                 }
             }
+            // Market impact fields
+            if (impactMagnitude) {
+                payload.impactMagnitude = parseFloat(impactMagnitude);
+                payload.impactType = impactType;
+                payload.priceUpdateType = priceUpdateType;
+                payload.executeNow = executeNow;
+                if (scheduledAt) payload.scheduledAt = scheduledAt;
+            }
             return quarterlyReportsApi.create(payload);
         },
         onSuccess: () => {
@@ -175,6 +191,9 @@ export default function AdminReportsPage() {
             setShowForm(false);
             setFormData({});
             setSelectedSymbolId('');
+            setImpactMagnitude('');
+            setExecuteNow(false);
+            setScheduledAt('');
         },
         onError: (err: any) => {
             toast({
@@ -197,6 +216,28 @@ export default function AdminReportsPage() {
         onError: (err: any) => {
             toast({
                 title: 'Failed to delete',
+                description: err.response?.data?.message || err.message,
+                variant: 'destructive',
+            });
+        },
+    });
+
+    // Execute market impact
+    const executeMutation = useMutation({
+        mutationFn: async ({ reportType, id }: { reportType: string; id: string }) => {
+            return quarterlyReportsApi.execute(reportType, id);
+        },
+        onSuccess: (res: any) => {
+            const summary = res.data?.summary;
+            toast({
+                title: 'Market Impact Executed',
+                description: summary ? `${summary.symbol}: ${summary.previousPrice} → ${summary.newPrice}` : 'Price updated',
+            });
+            queryClient.invalidateQueries({ queryKey: ['admin-quarterly-reports'] });
+        },
+        onError: (err: any) => {
+            toast({
+                title: 'Failed to execute impact',
                 description: err.response?.data?.message || err.message,
                 variant: 'destructive',
             });
@@ -313,6 +354,70 @@ export default function AdminReportsPage() {
                                 ))}
                             </div>
 
+                            {/* Market Impact Section */}
+                            <div className="border border-border rounded-lg p-4 mb-4 bg-secondary/20">
+                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                    <Zap className="h-4 w-4 text-yellow-500" />
+                                    Market Impact (Optional)
+                                </h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div>
+                                        <label className="label">Impact Magnitude</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={impactMagnitude}
+                                            onChange={(e) => setImpactMagnitude(e.target.value)}
+                                            placeholder="e.g. 5.0"
+                                            className="input w-full"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="label">Impact Type</label>
+                                        <select
+                                            value={impactType}
+                                            onChange={(e) => setImpactType(e.target.value as any)}
+                                            className="input w-full"
+                                        >
+                                            <option value="positive">Positive (↑)</option>
+                                            <option value="negative">Negative (↓)</option>
+                                            <option value="neutral">Neutral</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="label">Update Type</label>
+                                        <select
+                                            value={priceUpdateType}
+                                            onChange={(e) => setPriceUpdateType(e.target.value as any)}
+                                            className="input w-full"
+                                        >
+                                            <option value="percentage">Percentage (%)</option>
+                                            <option value="absolute">Absolute (Rs)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="label">Schedule For</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={scheduledAt}
+                                            onChange={(e) => setScheduledAt(e.target.value)}
+                                            className="input w-full"
+                                        />
+                                    </div>
+                                </div>
+                                {impactMagnitude && (
+                                    <label className="flex items-center gap-2 mt-3 text-sm cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={executeNow}
+                                            onChange={(e) => setExecuteNow(e.target.checked)}
+                                            className="rounded"
+                                        />
+                                        Execute impact immediately on publish
+                                    </label>
+                                )}
+                            </div>
+
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => createMutation.mutate()}
@@ -385,7 +490,46 @@ export default function AdminReportsPage() {
                                             ))}
                                         </div>
 
+                                        {/* Execution status badge */}
+                                        {report.impactMagnitude && (
+                                            report.isExecuted ? (
+                                                <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-green-500/10 text-green-500">
+                                                    <CheckCircle2 className="h-3 w-3" />
+                                                    Executed
+                                                </span>
+                                            ) : report.scheduledAt ? (
+                                                <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-500">
+                                                    <Clock className="h-3 w-3" />
+                                                    Scheduled
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-500">
+                                                    <Zap className="h-3 w-3" />
+                                                    Pending
+                                                </span>
+                                            )
+                                        )}
+
                                         <div className="flex items-center gap-2">
+                                            {/* Execute button for unexecuted reports with impact */}
+                                            {report.impactMagnitude && !report.isExecuted && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (confirm('Execute market impact for this report?')) {
+                                                            executeMutation.mutate({
+                                                                reportType: report.reportType,
+                                                                id: report.id,
+                                                            });
+                                                        }
+                                                    }}
+                                                    disabled={executeMutation.isPending}
+                                                    className="p-1.5 rounded hover:bg-yellow-500/10 text-yellow-500"
+                                                    title="Execute market impact"
+                                                >
+                                                    <Zap className="h-4 w-4" />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -460,6 +604,52 @@ export default function AdminReportsPage() {
                                                 year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                                             })}
                                         </p>
+
+                                        {/* Market Impact Info */}
+                                        {report.impactMagnitude && (
+                                            <div className="mt-3 pt-3 border-t border-border/50">
+                                                <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">Market Impact</p>
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground">Magnitude</p>
+                                                        <p className="font-medium">
+                                                            {report.impactType === 'negative' ? '-' : '+'}{report.impactMagnitude}
+                                                            {report.priceUpdateType === 'percentage' ? '%' : ' Rs'}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground">Direction</p>
+                                                        <p className={`font-medium capitalize ${report.impactType === 'positive' ? 'text-green-500' : report.impactType === 'negative' ? 'text-red-500' : ''}`}>
+                                                            {report.impactType}
+                                                        </p>
+                                                    </div>
+                                                    {report.isExecuted && report.previousPrice && (
+                                                        <>
+                                                            <div>
+                                                                <p className="text-xs text-muted-foreground">Previous Price</p>
+                                                                <p className="font-medium font-mono">रू{parseFloat(report.previousPrice).toLocaleString()}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs text-muted-foreground">New Price</p>
+                                                                <p className="font-medium font-mono">रू{parseFloat(report.newPrice).toLocaleString()}</p>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                    {report.scheduledAt && !report.isExecuted && (
+                                                        <div>
+                                                            <p className="text-xs text-muted-foreground">Scheduled At</p>
+                                                            <p className="font-medium">{new Date(report.scheduledAt).toLocaleString()}</p>
+                                                        </div>
+                                                    )}
+                                                    {report.executedAt && (
+                                                        <div>
+                                                            <p className="text-xs text-muted-foreground">Executed At</p>
+                                                            <p className="font-medium">{new Date(report.executedAt).toLocaleString()}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

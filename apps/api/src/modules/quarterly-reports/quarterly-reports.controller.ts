@@ -66,4 +66,15 @@ export class QuarterlyReportsController {
     ) {
         return this.reportsService.deleteReport(reportType, id);
     }
+
+    @Post(':reportType/:id/execute')
+    @Roles('admin')
+    @ApiOperation({ summary: 'Execute market impact of a quarterly report (admin only)' })
+    @ApiResponse({ status: 200, description: 'Market impact executed' })
+    async executeReportImpact(
+        @Param('reportType') reportType: string,
+        @Param('id') id: string,
+    ) {
+        return this.reportsService.executeReportImpact(reportType, id);
+    }
 }

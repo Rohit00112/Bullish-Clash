@@ -71,6 +71,13 @@
       "when": 1770822000000,
       "tag": "0009_bidding_trading_hours",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1770908400000,
+      "tag": "0010_report_market_impact",
+      "breakpoints": true
     }
   ]
 }
