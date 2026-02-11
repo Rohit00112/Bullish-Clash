@@ -275,32 +275,26 @@ export class BiddingService {
                     continue;
                 }
 
-                // Get the symbol's base price (market initial rate)
-                // Shares are allocated at base price, NOT at bid price.
-                // Bid price is only used for priority (higher bidders get shares first).
+                // Get the symbol's base price for reference
                 const bidSymbol = await tx.query.symbols.findFirst({
                     where: eq(schema.symbols.id, bid.symbolId),
                 });
-                const basePrice = Number(bidSymbol?.basePrice || bid.price);
+                const bidPrice = Number(bid.price);
 
                 // Calculate allocation (full or partial)
                 const allocatedQty = Math.min(bid.quantity, available);
                 const isPartial = allocatedQty < bid.quantity;
-                // Cost at base price (market initial rate), NOT bid price
-                const allocatedCost = basePrice * allocatedQty;
+                // Shares are allocated at BID PRICE (what the user actually paid)
+                const allocatedCost = bidPrice * allocatedQty;
                 const refundQty = bid.quantity - allocatedQty;
 
-                // Escrowed amount was at bid price, actual cost is at base price
-                // Refund = (escrowed for unallocated shares) + (price difference for allocated shares)
-                const escrowedForAllocated = Number(bid.price) * allocatedQty;
-                const escrowedForUnallocated = Number(bid.price) * refundQty;
-                const priceDifferenceRefund = escrowedForAllocated - allocatedCost; // bid was higher, refund diff
-                const totalRefund = escrowedForUnallocated + priceDifferenceRefund;
+                // Refund only for unallocated shares (partial fill)
+                const refundForUnallocated = bidPrice * refundQty;
 
                 // Update available supply
                 symbolSupply.set(bid.symbolId, available - allocatedQty);
 
-                // Create/Update holding at BASE PRICE (market initial rate)
+                // Create/Update holding at BID PRICE (actual cost paid)
                 const existingHolding = await tx.query.holdings.findFirst({
                     where: and(
                         eq(schema.holdings.userId, bid.userId),
@@ -330,13 +324,13 @@ export class BiddingService {
                         competitionId: bid.competitionId,
                         symbolId: bid.symbolId,
                         quantity: allocatedQty,
-                        avgPrice: basePrice.toString(),
+                        avgPrice: bidPrice.toString(),
                         totalCost: allocatedCost.toString(),
                     });
                 }
 
-                // Refund: unallocated shares + price difference for allocated shares
-                if (totalRefund > 0) {
+                // Refund only for unallocated shares (partial fill)
+                if (refundForUnallocated > 0) {
                     const portfolio = await tx.query.portfolios.findFirst({
                         where: and(
                             eq(schema.portfolios.userId, bid.userId),
@@ -347,25 +341,21 @@ export class BiddingService {
                     if (portfolio) {
                         await tx.update(schema.portfolios)
                             .set({
-                                cash: (Number(portfolio.cash) + totalRefund).toString(),
+                                cash: (Number(portfolio.cash) + refundForUnallocated).toString(),
                                 updatedAt: new Date(),
                             })
                             .where(eq(schema.portfolios.id, portfolio.id));
 
-                        const refundDesc = isPartial
-                            ? `Partial allocation - ${allocatedQty}/${bid.quantity} shares at base price रू${basePrice.toFixed(2)}, excess refunded`
-                            : `Bid settled at base price रू${basePrice.toFixed(2)} (bid was रू${Number(bid.price).toFixed(2)}), difference refunded`;
-
                         await tx.insert(schema.ledgerEntries).values({
                             userId: bid.userId,
                             competitionId: bid.competitionId,
-                            type: isPartial ? 'bid_partial_refund' : 'bid_price_adjustment',
-                            amount: totalRefund.toString(),
-                            balanceAfter: (Number(portfolio.cash) + totalRefund).toString(),
-                            description: refundDesc,
+                            type: 'bid_partial_refund',
+                            amount: refundForUnallocated.toString(),
+                            balanceAfter: (Number(portfolio.cash) + refundForUnallocated).toString(),
+                            description: `Partial allocation - ${allocatedQty}/${bid.quantity} shares at bid price रू${bidPrice.toFixed(2)}, unallocated refunded`,
                         });
                     }
-                    if (isPartial) partialCount++;
+                    partialCount++;
                 } else if (isPartial) {
                     partialCount++;
                 }
@@ -379,14 +369,14 @@ export class BiddingService {
                     })
                     .where(eq(schema.bids.id, bid.id));
 
-                // Record as a Trade at BASE PRICE (market initial rate)
+                // Record as a Trade at BID PRICE (actual cost paid)
                 await tx.insert(schema.trades).values({
                     userId: bid.userId,
                     competitionId: bid.competitionId,
                     symbolId: bid.symbolId,
                     side: 'buy',
                     quantity: allocatedQty,
-                    price: basePrice.toString(),
+                    price: bidPrice.toString(),
                     total: allocatedCost.toString(),
                     commission: '0',
                     executedAt: new Date(),
