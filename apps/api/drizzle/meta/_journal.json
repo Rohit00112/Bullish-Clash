@@ -64,6 +64,13 @@
       "when": 1770735600000,
       "tag": "0008_bidding_listing_reports",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1770822000000,
+      "tag": "0009_bidding_trading_hours",
+      "breakpoints": true
     }
   ]
 }
