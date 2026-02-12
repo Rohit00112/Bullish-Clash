@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Shared Types & Constants
+// Bullish Battle - Shared Types & Constants
 // Nepal Stock Market Trading Simulator
 // ============================================================
 

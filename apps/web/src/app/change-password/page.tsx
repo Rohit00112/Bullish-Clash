@@ -93,7 +93,7 @@ export default function ChangePasswordPage() {
                 <div className="text-center mb-8">
                     <Link href="/" className="inline-flex items-center gap-2">
                         <TrendingUp className="h-10 w-10 text-primary" />
-                        <span className="text-2xl font-bold">Bullish Clash</span>
+                        <span className="text-2xl font-bold">Bullish Battle</span>
                     </Link>
                     <p className="text-muted-foreground mt-2">Create a new secure password</p>
                 </div>

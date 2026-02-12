@@ -1,6 +1,6 @@
 # Production Deployment Guide
 
-This guide explains how to deploy the **Bullish Clash** application on your server with IP `192.168.43.131`.
+This guide explains how to deploy the **Bullish Battle** application on your server with IP `192.168.43.131`.
 
 ## Prerequisites
 

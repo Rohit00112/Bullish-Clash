@@ -380,7 +380,7 @@ export default function AdminSettingsPage() {
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g., Bullish Clash 2024"
+                        placeholder="e.g., Bullish Battle 2024"
                         className="input w-full"
                     />
                 </div>

@@ -1,7 +1,7 @@
 {
     "name": "@bullish-clash/api",
     "version": "1.0.0",
-    "description": "Bullish Clash API - NestJS Backend",
+    "description": "Bullish Battle API - NestJS Backend",
     "scripts": {
         "build": "nest build && tsc src/database/migrate.ts --outDir dist/database --skipLibCheck && tsc src/database/seed.ts --outDir dist/database --skipLibCheck",
         "start": "nest start",

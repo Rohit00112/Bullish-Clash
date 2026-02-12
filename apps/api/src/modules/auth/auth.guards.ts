@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Auth Guards
+// Bullish Battle - Auth Guards
 // ============================================================
 
 import { Injectable, CanActivate, ExecutionContext, SetMetadata } from '@nestjs/common';

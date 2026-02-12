@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Users Controller
+// Bullish Battle - Users Controller
 // ============================================================
 
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';

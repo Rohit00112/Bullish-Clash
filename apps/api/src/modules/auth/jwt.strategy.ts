@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - JWT Strategy
+// Bullish Battle - JWT Strategy
 // ============================================================
 
 import { Injectable, UnauthorizedException } from '@nestjs/common';

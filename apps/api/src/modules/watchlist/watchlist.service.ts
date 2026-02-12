@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Watchlist Service
+// Bullish Battle - Watchlist Service
 // ============================================================
 
 import { Injectable, Inject, BadRequestException, forwardRef } from '@nestjs/common';

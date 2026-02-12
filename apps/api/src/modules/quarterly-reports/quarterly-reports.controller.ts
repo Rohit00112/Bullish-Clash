@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Quarterly Reports Controller
+// Bullish Battle - Quarterly Reports Controller
 // ============================================================
 
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';

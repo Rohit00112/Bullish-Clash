@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Database Schema Index
+// Bullish Battle - Database Schema Index
 // Exports all schema tables and types
 // ============================================================
 

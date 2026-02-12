@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - WebSocket Trading Gateway
+// Bullish Battle - WebSocket Trading Gateway
 // Real-time updates for prices, trades, and leaderboard
 // ============================================================
 
@@ -83,7 +83,7 @@ export class TradingGateway implements OnGatewayConnection, OnGatewayDisconnect 
         client.emit('connected', {
             socketId: client.id,
             timestamp: new Date(),
-            message: 'Connected to Bullish Clash trading server',
+            message: 'Connected to Bullish Battle trading server',
         });
     }
 

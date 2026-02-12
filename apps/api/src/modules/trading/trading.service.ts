@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Trading Service (Order Execution Engine)
+// Bullish Battle - Trading Service (Order Execution Engine)
 // Real-world order book with price-time priority matching
 // ============================================================
 

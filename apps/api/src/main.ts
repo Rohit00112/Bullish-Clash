@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - NestJS Application Entry Point
+// Bullish Battle - NestJS Application Entry Point
 // ============================================================
 
 import { NestFactory } from '@nestjs/core';
@@ -39,7 +39,7 @@ async function bootstrap() {
 
     // Swagger documentation
     const config = new DocumentBuilder()
-        .setTitle('Bullish Clash API')
+        .setTitle('Bullish Battle API')
         .setDescription('Nepal Stock Market Trading Simulator API')
         .setVersion('1.0')
         .addBearerAuth()
@@ -63,7 +63,7 @@ async function bootstrap() {
     console.log(`
   ╔═══════════════════════════════════════════════════════════╗
   ║                                                           ║
-  ║   🐂 Bullish Clash API Server                             ║
+  ║   🐂 Bullish Battle API Server                             ║
   ║                                                           ║
   ║   🚀 Server running on: http://localhost:${port}            ║
   ║   📚 API Docs: http://localhost:${port}/api/docs            ║

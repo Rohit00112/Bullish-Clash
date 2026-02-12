@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Watchlist Module
+// Bullish Battle - Watchlist Module
 // ============================================================
 
 import { Module, forwardRef } from '@nestjs/common';

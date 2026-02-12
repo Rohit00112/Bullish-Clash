@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Quarterly Reports DTOs
+// Bullish Battle - Quarterly Reports DTOs
 // ============================================================
 
 import { IsString, IsOptional, IsNumber, IsEnum, IsBoolean, IsDateString } from 'class-validator';

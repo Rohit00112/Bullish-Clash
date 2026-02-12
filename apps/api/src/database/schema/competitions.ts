@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Database Schema (Drizzle ORM)
+// Bullish Battle - Database Schema (Drizzle ORM)
 // Competition & Settings Schema
 // ============================================================
 

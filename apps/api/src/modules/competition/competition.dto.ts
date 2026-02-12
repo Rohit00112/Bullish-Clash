@@ -1,12 +1,12 @@
 // ============================================================
-// Bullish Clash - Competition DTOs
+// Bullish Battle - Competition DTOs
 // ============================================================
 
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNumber, IsBoolean, IsOptional, IsDateString, IsEnum, Min, Max } from 'class-validator';
 
 export class CreateCompetitionDto {
-    @ApiProperty({ example: 'Bullish Clash Championship 2026' })
+    @ApiProperty({ example: 'Bullish Battle Championship 2026' })
     @IsString()
     name: string;
 

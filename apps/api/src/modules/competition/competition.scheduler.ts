@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Competition Scheduler
+// Bullish Battle - Competition Scheduler
 // Auto-transitions bidding/trading status based on configured hours
 // ============================================================
 

@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Events Service (Admin Price Scripts)
+// Bullish Battle - Events Service (Admin Price Scripts)
 // ============================================================
 
 import { Injectable, Inject, NotFoundException, BadRequestException, forwardRef } from '@nestjs/common';

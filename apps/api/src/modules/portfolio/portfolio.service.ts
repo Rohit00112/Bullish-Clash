@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Portfolio Service
+// Bullish Battle - Portfolio Service
 // ============================================================
 
 import { Injectable, Inject, NotFoundException, forwardRef } from '@nestjs/common';

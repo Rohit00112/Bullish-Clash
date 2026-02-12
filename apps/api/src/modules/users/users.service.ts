@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Users Service
+// Bullish Battle - Users Service
 // ============================================================
 
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';

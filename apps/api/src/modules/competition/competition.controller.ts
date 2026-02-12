@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Competition Controller
+// Bullish Battle - Competition Controller
 // ============================================================
 
 import { Controller, Get, Post, Patch, Body, Param, UseGuards } from '@nestjs/common';

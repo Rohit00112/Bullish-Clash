@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Email Service
+// Bullish Battle - Email Service
 // ============================================================
 
 import { Injectable, Logger } from '@nestjs/common';
@@ -53,7 +53,7 @@ export class EmailService {
 
         try {
             const info = await this.transporter.sendMail({
-                from: `"Bullish Clash" <${fromEmail}>`,
+                from: `"Bullish Battle" <${fromEmail}>`,
                 to: options.to,
                 subject: options.subject,
                 html: options.html,
@@ -82,7 +82,7 @@ export class EmailService {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Bullish Clash</title>
+    <title>Welcome to Bullish Battle</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -173,7 +173,7 @@ export class EmailService {
             <div class="logo">📈 Bullish<span>Clash</span></div>
         </div>
         
-        <h1>Welcome to Bullish Clash, ${user.fullName}!</h1>
+        <h1>Welcome to Bullish Battle, ${user.fullName}!</h1>
         
         <p>Your account has been created for the Nepal Stock Market Trading Simulator. You can now participate in the competition and test your trading skills!</p>
         
@@ -193,7 +193,7 @@ export class EmailService {
         
         <div class="footer">
             <p>Good luck with your trades! 🚀</p>
-            <p>— The Bullish Clash Team</p>
+            <p>— The Bullish Battle Team</p>
         </div>
     </div>
 </body>
@@ -202,7 +202,7 @@ export class EmailService {
 
         return this.sendEmail({
             to: user.email,
-            subject: '🎉 Welcome to Bullish Clash - Your Login Credentials',
+            subject: '🎉 Welcome to Bullish Battle - Your Login Credentials',
             html,
         });
     }

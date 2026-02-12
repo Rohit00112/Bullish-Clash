@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Symbols Service
+// Bullish Battle - Symbols Service
 // ============================================================
 
 import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';

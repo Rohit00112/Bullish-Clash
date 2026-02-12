@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Portfolio Controller
+// Bullish Battle - Portfolio Controller
 // ============================================================
 
 import { Controller, Get, UseGuards } from '@nestjs/common';

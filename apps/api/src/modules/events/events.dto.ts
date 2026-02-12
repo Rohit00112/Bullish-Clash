@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Events DTOs
+// Bullish Battle - Events DTOs
 // ============================================================
 
 import { ApiProperty } from '@nestjs/swagger';

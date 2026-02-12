@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Prices Service (Price Engine)
+// Bullish Battle - Prices Service (Price Engine)
 // ============================================================
 
 import { Injectable, Inject, forwardRef } from '@nestjs/common';

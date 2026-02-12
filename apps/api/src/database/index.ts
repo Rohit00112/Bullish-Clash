@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Database Connection & Drizzle Instance
+// Bullish Battle - Database Connection & Drizzle Instance
 // ============================================================
 
 import { drizzle } from 'drizzle-orm/node-postgres';

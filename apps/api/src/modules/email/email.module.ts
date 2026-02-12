@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Email Module
+// Bullish Battle - Email Module
 // ============================================================
 
 import { Module, Global } from '@nestjs/common';

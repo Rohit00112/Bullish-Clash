@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Leaderboard Module
+// Bullish Battle - Leaderboard Module
 // ============================================================
 
 import { Module, forwardRef } from '@nestjs/common';

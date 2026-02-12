@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - WebSocket Module
+// Bullish Battle - WebSocket Module
 // ============================================================
 
 import { Module, forwardRef } from '@nestjs/common';

@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Leaderboard Controller
+// Bullish Battle - Leaderboard Controller
 // ============================================================
 
 import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';

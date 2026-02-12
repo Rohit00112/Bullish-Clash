@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Symbols Module
+// Bullish Battle - Symbols Module
 // ============================================================
 
 import { Module } from '@nestjs/common';

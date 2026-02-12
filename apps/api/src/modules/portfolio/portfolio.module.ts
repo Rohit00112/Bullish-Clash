@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Portfolio Module
+// Bullish Battle - Portfolio Module
 // ============================================================
 
 import { Module, forwardRef } from '@nestjs/common';

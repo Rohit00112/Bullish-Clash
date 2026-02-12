@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Leaderboard Service
+// Bullish Battle - Leaderboard Service
 // ============================================================
 
 import { Injectable, Inject, forwardRef } from '@nestjs/common';

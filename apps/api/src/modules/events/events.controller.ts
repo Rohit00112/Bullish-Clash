@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Events Controller (Admin Price Scripts)
+// Bullish Battle - Events Controller (Admin Price Scripts)
 // ============================================================
 
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';

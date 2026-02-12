@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Redis Module
+// Bullish Battle - Redis Module
 // ============================================================
 
 import { Module, Global } from '@nestjs/common';

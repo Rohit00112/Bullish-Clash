@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Quarterly Reports Module
+// Bullish Battle - Quarterly Reports Module
 // ============================================================
 
 import { Module, forwardRef } from '@nestjs/common';

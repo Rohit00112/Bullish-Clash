@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Quarterly Reports Service
+// Bullish Battle - Quarterly Reports Service
 // ============================================================
 
 import { Injectable, Inject, NotFoundException, BadRequestException, forwardRef } from '@nestjs/common';

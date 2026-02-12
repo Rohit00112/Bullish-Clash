@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Competition Module
+// Bullish Battle - Competition Module
 // ============================================================
 
 import { Module, forwardRef } from '@nestjs/common';

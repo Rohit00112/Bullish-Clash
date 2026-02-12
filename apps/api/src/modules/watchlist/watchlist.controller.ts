@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Watchlist Controller
+// Bullish Battle - Watchlist Controller
 // ============================================================
 
 import { Controller, Get, Post, Delete, Body, Param, UseGuards } from '@nestjs/common';

@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Database Module
+// Bullish Battle - Database Module
 // ============================================================
 
 import { Module, Global } from '@nestjs/common';

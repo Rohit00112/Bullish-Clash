@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Root Application Module
+// Bullish Battle - Root Application Module
 // ============================================================
 
 import { Module } from '@nestjs/common';

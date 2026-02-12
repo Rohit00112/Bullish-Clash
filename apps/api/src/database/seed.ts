@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Database Seed Script
+// Bullish Battle - Database Seed Script
 // Seeds initial data: Admin user, NEPSE symbols, Competition
 // ============================================================
 
@@ -199,7 +199,7 @@ async function seed() {
 
         await db.insert(schema.competitions).values({
             id: competitionId,
-            name: 'Bullish Clash Championship 2026',
+            name: 'Bullish Battle Championship 2026',
             description: 'The premier Nepal stock trading competition. Trade NEPSE stocks, compete for the top spot!',
             status: 'active',
             startingCash: '1000000',

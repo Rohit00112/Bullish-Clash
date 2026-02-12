@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Auth Controller
+// Bullish Battle - Auth Controller
 // ============================================================
 
 import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';

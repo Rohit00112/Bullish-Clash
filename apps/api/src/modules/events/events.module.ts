@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Events Module (Admin Price Scripts)
+// Bullish Battle - Events Module (Admin Price Scripts)
 // ============================================================
 
 import { Module, forwardRef } from '@nestjs/common';

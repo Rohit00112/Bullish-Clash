@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Auth Module
+// Bullish Battle - Auth Module
 // ============================================================
 
 import { Module } from '@nestjs/common';

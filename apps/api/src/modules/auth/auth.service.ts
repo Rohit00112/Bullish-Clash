@@ -1,5 +1,5 @@
 // ============================================================
-// Bullish Clash - Auth Service
+// Bullish Battle - Auth Service
 // ============================================================
 
 import { Injectable, UnauthorizedException, ConflictException, Inject } from '@nestjs/common';

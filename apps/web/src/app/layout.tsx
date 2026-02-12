@@ -4,7 +4,7 @@ import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-    title: 'Bullish Clash - Nepal Stock Trading Simulator',
+    title: 'Bullish Battle - Nepal Stock Trading Simulator',
     description: 'Real-time NEPSE stock trading competition simulator',
     keywords: ['NEPSE', 'Nepal', 'stock', 'trading', 'simulator', 'competition'],
 };

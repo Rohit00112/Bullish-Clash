@@ -40,7 +40,7 @@ export default function HomePage() {
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center gap-2">
                             <TrendingUp className="h-8 w-8 text-primary" />
-                            <span className="text-xl font-bold">Bullish Clash</span>
+                            <span className="text-xl font-bold">Bullish Battle</span>
                         </div>
                         <div className="flex items-center gap-4">
                             <Link href="/login" className="btn-primary">
@@ -76,7 +76,7 @@ export default function HomePage() {
             {/* Features */}
             <section className="py-20 px-4 bg-secondary/30">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-3xl font-bold text-center mb-12">Why Bullish Clash?</h2>
+                    <h2 className="text-3xl font-bold text-center mb-12">Why Bullish Battle?</h2>
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="card text-center">
                             <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -157,10 +157,10 @@ export default function HomePage() {
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-2">
                         <TrendingUp className="h-6 w-6 text-primary" />
-                        <span className="font-semibold">Bullish Clash</span>
+                        <span className="font-semibold">Bullish Battle</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                        © 2026 Bullish Clash. Educational trading simulator. Not real financial advice.
+                        © 2026 Bullish Battle. Educational trading simulator. Not real financial advice.
                     </p>
                     <div className="flex gap-4 text-sm text-muted-foreground">
                         <Link href="/about" className="hover:text-foreground">About</Link>

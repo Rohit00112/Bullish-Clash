@@ -125,7 +125,7 @@ export default function DashboardLayout({
                     {/* Logo */}
                     <div className="flex items-center gap-2 p-6 border-b border-border">
                         <TrendingUp className="h-8 w-8 text-primary" />
-                        <span className="text-xl font-bold">Bullish Clash</span>
+                        <span className="text-xl font-bold">Bullish Battle</span>
                     </div>
 
                     {/* Navigation */}

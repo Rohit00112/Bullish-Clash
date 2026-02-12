@@ -1,4 +1,4 @@
-# Bullish Clash - Nepal Stock Market Trading Simulator
+# Bullish Battle - Nepal Stock Market Trading Simulator
 
 A real-time competitive trading simulator for NEPSE (Nepal Stock Exchange) stocks. Built for live competition events where participants trade virtual stocks and compete for the highest portfolio value.
 
